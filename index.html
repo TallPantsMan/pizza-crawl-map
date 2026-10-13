@@ -3,117 +3,237 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <title>🍕 Pizza Crawl Map (2015–2026)</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background: #020617; color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    #app-root {
+      display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden;
+    }
+    .top-header {
+      background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 14px; flex-shrink: 0; z-index: 30;
+    }
+    .header-row {
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    }
+    .brand-box {
+      display: flex; align-items: center; gap: 10px; min-width: 0;
+    }
+    .logo-badge {
+      width: 36px; height: 36px; border-radius: 10px; background: rgba(245,158,11,0.18);
+      border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .brand-title {
+      font-size: 15px; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .brand-sub {
+      font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .actions-row {
+      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+    }
+    .btn {
+      border: none; border-radius: 8px; padding: 7px 11px; font-size: 12px; font-weight: 700;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.9; }
+    .btn-share { background: #f59e0b; color: #090d16; }
+    .btn-locate { background: #2563eb; color: #ffffff; }
+    .btn-list-toggle { background: #1e293b; color: #fbbf24; border: 1px solid #334155; display: none; }
+    .filters-bar {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;
+    }
+    .filter-control {
+      background: #1e293b; border: 1px solid #334155; color: #f8fafc; font-size: 12px;
+      border-radius: 8px; padding: 7px 10px; outline: none; width: 100%;
+    }
+    .filter-search { grid-column: span 2; }
+    @media (min-width: 640px) {
+      .filters-bar { display: flex; flex-wrap: wrap; align-items: center; }
+      .filter-control { width: auto; }
+      .filter-search { width: 220px; }
+      .brand-title { font-size: 17px; }
+    }
+    @media (max-width: 767px) {
+      .btn-list-toggle { display: inline-flex; }
+      .hide-xs { display: none; }
+    }
+    .main-area {
+      display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; height: 100%;
+    }
+    .sidebar {
+      width: 370px; background: #0f172a; border-right: 1px solid #1e293b;
+      display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 20;
+    }
+    @media (max-width: 767px) {
+      .sidebar {
+        position: absolute; inset: 0; width: 100%; display: none;
+      }
+      .sidebar.mobile-open {
+        display: flex;
+      }
+    }
+    .sidebar-header {
+      padding: 9px 14px; border-bottom: 1px solid #1e293b; display: flex;
+      align-items: center; justify-content: space-between; font-size: 12px; color: #94a3b8;
+    }
+    .legend-dots { display: flex; align-items: center; gap: 8px; font-size: 11px; }
+    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; margin-right: 3px; }
+    .places-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
+    .place-item {
+      padding: 12px 14px; border-bottom: 1px solid rgba(30,41,59,0.7);
+      display: flex; align-items: flex-start; gap: 11px; cursor: pointer; transition: background 0.12s;
+    }
+    .place-item:hover { background: rgba(30,41,59,0.7); }
+    .rank-circle {
+      width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center;
+      justify-content: center; font-weight: 800; font-size: 12px; color: #fff; flex-shrink: 0; margin-top: 2px;
+    }
+    .place-info { flex: 1; min-width: 0; }
+    .place-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .place-name { font-size: 14px; font-weight: 600; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .score-pill {
+      font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
+      background: #1e293b; color: #fbbf24; border: 1px solid #334155; flex-shrink: 0;
+    }
+    .place-meta { font-size: 12px; color: #94a3b8; margin: 3px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .map-wrap { flex: 1; position: relative; width: 100%; height: 100%; }
+    #map { width: 100%; height: 100%; z-index: 10; }
     .custom-pin {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 9999px;
-      font-weight: 800;
-      font-size: 12px;
-      color: #fff;
-      border: 2.5px solid #fff;
+      display: flex; align-items: center; justify-content: center; border-radius: 9999px;
+      font-weight: 800; font-size: 12px; color: #fff; border: 2.5px solid #fff;
       box-shadow: 0 3px 10px rgba(0,0,0,0.45);
-      transition: transform 0.15s ease;
     }
-    .leaflet-popup-content-wrapper {
-      border-radius: 14px;
-      padding: 2px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    }
-    .leaflet-popup-content {
-      margin: 10px 12px;
+    .leaflet-popup-content-wrapper { border-radius: 14px; padding: 2px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
+    .leaflet-popup-content { margin: 10px 12px; }
+    .popup-card { min-width: 235px; max-width: 275px; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .popup-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 5px; color: #fff; margin-bottom: 5px; }
+    .popup-title { font-weight: 700; font-size: 16px; margin: 0; line-height: 1.25; color: #0f172a; }
+    .popup-sub { font-size: 12px; color: #64748b; margin: 2px 0 0 0; }
+    .popup-addr { font-size: 12px; color: #475569; margin: 4px 0 0 0; }
+    .popup-history { margin-top: 8px; background: #f8fafc; border-radius: 8px; padding: 7px 9px; border: 1px solid #e2e8f0; }
+    .popup-history-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .popup-history-row { font-size: 11px; padding: 3px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #f1f5f9; }
+    .popup-history-row:last-child { border-bottom: none; }
+    .popup-notes { font-size: 11px; font-style: italic; color: #64748b; margin: 6px 0 0 0; }
+    .popup-gmaps-btn {
+      margin-top: 9px; display: block; width: 100%; text-align: center; background: #2563eb;
+      color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 12px;
+      padding: 9px 12px; border-radius: 8px;
     }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 flex flex-col h-full w-full overflow-hidden">
-  <header class="bg-slate-900 border-b border-slate-800 px-3 py-2.5 md:px-5 md:py-3 shrink-0 z-30">
-    <div class="flex items-center justify-between gap-2">
-      <div class="flex items-center gap-2 min-w-0">
-        <div class="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-lg shrink-0">🍕</div>
-        <div class="min-w-0">
-          <h1 class="text-sm md:text-lg font-bold tracking-tight text-white truncate">Pizza Crawl Map (2015–2026)</h1>
-          <p class="text-[11px] md:text-xs text-slate-400 truncate">52 Pizzerias • 12 Annual Crawls • NYC, Westchester &amp; CT</p>
+<body>
+  <div id="app-root">
+    <header class="top-header">
+      <div class="header-row">
+        <div class="brand-box">
+          <div class="logo-badge">🍕</div>
+          <div style="min-width:0">
+            <h1 class="brand-title">Pizza Crawl Map (2015–2026)</h1>
+            <p class="brand-sub">52 Pizzerias • 12 Annual Crawls • NYC, Westchester &amp; CT</p>
+          </div>
+        </div>
+
+        <div class="actions-row">
+          <button id="shareBtn" class="btn btn-share" title="Send to a friend">
+            <span>📲</span><span>Share</span>
+          </button>
+          <button id="locateBtn" class="btn btn-locate" title="Show my location">
+            <span>📍</span><span class="hide-xs">Near Me</span>
+          </button>
+          <button id="mobileToggleBtn" class="btn btn-list-toggle">
+            <span id="mobileToggleIcon">🏆</span>
+            <span id="mobileToggleText">List (52)</span>
+          </button>
         </div>
       </div>
 
-      <div class="flex items-center gap-1.5 shrink-0">
-        <button id="shareBtn" class="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold text-xs px-2.5 py-2 rounded-lg flex items-center gap-1 shadow transition" title="Send to a friend">
-          <span>📲</span><span>Share</span>
-        </button>
-        <button id="locateBtn" class="bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs px-2.5 py-2 rounded-lg flex items-center gap-1 shadow transition" title="Show my location">
-          <span>📍</span><span class="hidden sm:inline">Near Me</span>
-        </button>
-        <button id="mobileToggleBtn" class="md:hidden bg-slate-800 border border-slate-700 text-amber-400 font-semibold text-xs px-3 py-2 rounded-lg flex items-center gap-1">
-          <span id="mobileToggleIcon">🏆</span>
-          <span id="mobileToggleText">List (52)</span>
-        </button>
+      <div class="filters-bar">
+        <select id="crawlFilter" class="filter-control">
+          <option value="ALL">All 12 Crawls (2015–2026)</option>
+          <option value="2026">2026 — Crawl XII (BK/MHTN)</option>
+          <option value="2025">2025 — Crawl XI (Westchester)</option>
+          <option value="2024">2024 — Crawl X (G.O.A.T.)</option>
+          <option value="2023">2023 — Crawl IX (Manhattan)</option>
+          <option value="2022">2022 — Crawl VIII (Staten Island)</option>
+          <option value="2021">2021 — Crawl VII (Brooklyn)</option>
+          <option value="2020">2020 — Crawl VI (New Haven)</option>
+          <option value="2019">2019 — Crawl V (Bronx)</option>
+          <option value="2018">2018 — Crawl IV (Fire &amp; Slice)</option>
+          <option value="2017">2017 — Crawl III (Cheese in Heat)</option>
+          <option value="2016">2016 — Crawl II (Brooklyn)</option>
+          <option value="2015">2015 — Crawl I (Inaugural)</option>
+        </select>
+
+        <select id="regionFilter" class="filter-control">
+          <option value="ALL">All Regions (52)</option>
+          <option value="Manhattan">Manhattan (18)</option>
+          <option value="Brooklyn">Brooklyn (14)</option>
+          <option value="Staten Island">Staten Island (5)</option>
+          <option value="Bronx">Bronx (5)</option>
+          <option value="Westchester">Westchester (5)</option>
+          <option value="New Haven, CT">New Haven, CT (5)</option>
+        </select>
+
+        <input id="searchInput" type="search" placeholder="Search pizzeria or neighborhood..." class="filter-control filter-search" />
       </div>
-    </div>
+    </header>
 
-    <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-1.5 mt-2">
-      <select id="crawlFilter" class="bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500 w-full sm:w-auto">
-        <option value="ALL">All 12 Crawls (2015–2026)</option>
-        <option value="2026">2026 — Crawl XII (BK/MHTN)</option>
-        <option value="2025">2025 — Crawl XI (Westchester)</option>
-        <option value="2024">2024 — Crawl X (G.O.A.T.)</option>
-        <option value="2023">2023 — Crawl IX (Manhattan)</option>
-        <option value="2022">2022 — Crawl VIII (Staten Island)</option>
-        <option value="2021">2021 — Crawl VII (Brooklyn)</option>
-        <option value="2020">2020 — Crawl VI (New Haven)</option>
-        <option value="2019">2019 — Crawl V (Bronx)</option>
-        <option value="2018">2018 — Crawl IV (Fire &amp; Slice)</option>
-        <option value="2017">2017 — Crawl III (Cheese in Heat)</option>
-        <option value="2016">2016 — Crawl II (Brooklyn)</option>
-        <option value="2015">2015 — Crawl I (Inaugural)</option>
-      </select>
-
-      <select id="regionFilter" class="bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-lg px-2.5 py-2 focus:outline-none focus:border-amber-500 w-full sm:w-auto">
-        <option value="ALL">All Regions (52)</option>
-        <option value="Manhattan">Manhattan (18)</option>
-        <option value="Brooklyn">Brooklyn (14)</option>
-        <option value="Staten Island">Staten Island (5)</option>
-        <option value="Bronx">Bronx (5)</option>
-        <option value="Westchester">Westchester (5)</option>
-        <option value="New Haven, CT">New Haven, CT (5)</option>
-      </select>
-
-      <input id="searchInput" type="search" placeholder="Search pizzeria or neighborhood..." class="col-span-2 sm:w-52 bg-slate-800 border border-slate-700 text-slate-100 text-xs rounded-lg px-3 py-2 focus:outline-none focus:border-amber-500" />
-    </div>
-  </header>
-
-  <div class="flex flex-1 relative overflow-hidden">
-    <aside id="sidebarPanel" class="hidden md:flex flex-col w-full md:w-96 bg-slate-900 border-r border-slate-800 shrink-0 absolute md:static inset-0 z-20">
-      <div class="p-2.5 px-3.5 border-b border-slate-800 flex items-center justify-between text-xs text-slate-400 bg-slate-900/95">
-        <span id="countLabel" class="font-medium text-slate-300">Showing 52 pizzerias</span>
-        <div class="flex items-center gap-2 text-[11px]">
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> 4.0+</span>
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-500"></span> 3.6+</span>
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-500"></span> 3.2+</span>
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span> &lt;3.2</span>
+    <div class="main-area">
+      <aside id="sidebarPanel" class="sidebar">
+        <div class="sidebar-header">
+          <span id="countLabel" style="font-weight:600;color:#cbd5e1">Showing 52 pizzerias</span>
+          <div class="legend-dots">
+            <span><i class="dot" style="background:#f59e0b"></i>4.0+</span>
+            <span><i class="dot" style="background:#10b981"></i>3.6+</span>
+            <span><i class="dot" style="background:#3b82f6"></i>3.2+</span>
+            <span><i class="dot" style="background:#f43f5e"></i>&lt;3.2</span>
+          </div>
         </div>
-      </div>
-      <div id="placesList" class="flex-1 overflow-y-auto divide-y divide-slate-800/70 pb-16 md:pb-0"></div>
-    </aside>
+        <div id="placesList" class="places-list"></div>
+      </aside>
 
-    <main class="flex-1 relative h-full w-full">
-      <div id="map" class="w-full h-full z-10"></div>
-    </main>
+      <main class="map-wrap">
+        <div id="map"></div>
+      </main>
+    </div>
   </div>
 
   <script>
-    function bootApp() {
-      if (typeof L === 'undefined') {
-        setTimeout(bootApp, 50);
+    function ensureLeafletAndBoot() {
+      if (typeof window.L !== 'undefined') {
+        initPizzaMap();
         return;
       }
+      if (!document.getElementById('leaflet-js-loader')) {
+        const s = document.createElement('script');
+        s.id = 'leaflet-js-loader';
+        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        s.onload = initPizzaMap;
+        document.head.appendChild(s);
+      } else {
+        setTimeout(ensureLeafletAndBoot, 50);
+      }
+    }
+
+    function initPizzaMap() {
+      if (window.__pizzaMapInitialized) return;
+      window.__pizzaMapInitialized = true;
+
+      if (!document.querySelector('link[href*="leaflet.css"]')) {
+        const lcss = document.createElement('link');
+        lcss.rel = 'stylesheet';
+        lcss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(lcss);
+      }
+
       let PLACES = [];
       let mobileListOpen = false;
       let userLocationMarker = null;
@@ -164,16 +284,14 @@
           mobileListOpen = !mobileListOpen;
         }
         if (mobileListOpen) {
-          sidebar.classList.remove('hidden');
-          sidebar.classList.add('flex');
+          sidebar.classList.add('mobile-open');
           icon.textContent = '🗺️';
           text.textContent = 'Map View';
         } else {
-          sidebar.classList.add('hidden');
-          sidebar.classList.remove('flex');
+          sidebar.classList.remove('mobile-open');
           icon.textContent = '🏆';
           text.textContent = `List (${currentFilteredCount})`;
-          setTimeout(() => map.invalidateSize(), 50);
+          setTimeout(() => map.invalidateSize(), 60);
         }
       }
 
@@ -239,26 +357,26 @@
 
           const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
           const appsHtml = p.appearances.map(a =>
-            `<div class="text-xs py-1 flex items-center justify-between gap-2 border-b border-slate-100 last:border-0">
-              <span class="text-slate-700 font-medium">${a.year} — ${a.crawl}</span>
-              <span class="font-bold text-slate-900 whitespace-nowrap">${a.score !== null ? a.score.toFixed(3) + ' (#' + a.rank + ')' : 'Inaugural'}</span>
+            `<div class="popup-history-row">
+              <span style="color:#334155;font-weight:500">${a.year} — ${a.crawl}</span>
+              <span style="font-weight:700;color:#0f172a;white-space:nowrap">${a.score !== null ? a.score.toFixed(3) + ' (#' + a.rank + ')' : 'Inaugural'}</span>
             </div>`
           ).join('');
 
           const popupHtml = `
-            <div class="min-w-[240px] max-w-[280px] text-slate-900">
-              <span class="inline-block text-xs font-bold px-2 py-0.5 rounded text-white mb-1" style="background:${color}">
+            <div class="popup-card">
+              <span class="popup-badge" style="background:${color}">
                 ${activeApp.rank ? 'Rank #' + activeApp.rank : '2015 Crawl'} • ${activeApp.score !== null ? activeApp.score.toFixed(3) : 'Unscored'}
               </span>
-              <h3 class="font-bold text-base leading-snug">${p.name}</h3>
-              <p class="text-xs text-slate-500">${p.neighborhood} • ${p.region}</p>
-              <p class="text-xs text-slate-600 mt-1">${p.address}</p>
-              <div class="mt-2 bg-slate-50 rounded-lg p-2 border border-slate-200">
-                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Crawl History</div>
+              <h3 class="popup-title">${p.name}</h3>
+              <p class="popup-sub">${p.neighborhood} • ${p.region}</p>
+              <p class="popup-addr">${p.address}</p>
+              <div class="popup-history">
+                <div class="popup-history-title">Crawl History</div>
                 ${appsHtml}
               </div>
-              <p class="text-xs italic text-slate-500 mt-1.5">${p.notes}</p>
-              <a href="${gmapsUrl}" target="_blank" rel="noopener" class="mt-2.5 block w-full text-center bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow transition">
+              <p class="popup-notes">${p.notes}</p>
+              <a href="${gmapsUrl}" target="_blank" rel="noopener" class="popup-gmaps-btn">
                 Open in Google Maps App ↗
               </a>
             </div>
@@ -269,19 +387,17 @@
           bounds.push([p.lat, p.lng]);
 
           const item = document.createElement('div');
-          item.className = 'p-3.5 hover:bg-slate-800/70 active:bg-slate-800 cursor-pointer transition flex items-start gap-3';
+          item.className = 'place-item';
           item.innerHTML = `
-            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 mt-0.5" style="background:${color}">
+            <div class="rank-circle" style="background:${color}">
               ${activeApp.rank ? '#' + activeApp.rank : '★'}
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between gap-2">
-                <h4 class="font-semibold text-sm text-white truncate">${p.name}</h4>
-                <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700 shrink-0">
-                  ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}
-                </span>
+            <div class="place-info">
+              <div class="place-top">
+                <h4 class="place-name">${p.name}</h4>
+                <span class="score-pill">${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</span>
               </div>
-              <p class="text-xs text-slate-400 truncate mt-0.5">${p.neighborhood} (${p.region}) • ${p.address}</p>
+              <p class="place-meta">${p.neighborhood} (${p.region}) • ${p.address}</p>
             </div>
           `;
           item.addEventListener('click', () => {
@@ -303,6 +419,7 @@
             map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
           }
         }
+        setTimeout(() => map.invalidateSize(), 100);
       }
 
       document.getElementById('mobileToggleBtn').addEventListener('click', () => toggleMobileView());
@@ -362,7 +479,8 @@
           render();
         });
     }
-    bootApp();
+
+    ensureLeafletAndBoot();
   </script>
 </body>
 </html>

@@ -1,0 +1,45 @@
+name: Sync Pizza Crawl from Google Sheets
+
+on:
+  schedule:
+    # Runs automatically every 4 hours
+    - cron: '0 */4 * * *'
+  workflow_dispatch:
+    # Allows manual 1-click trigger from GitHub Actions tab
+  repository_dispatch:
+    # Allows instant webhook trigger from Google Sheets onEdit script
+    types: [sheet_updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-sheet:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Sheet Sync Pipeline
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python sync_pizza_crawl_from_sheets.py
+
+      - name: Commit and push changes if updated
+        run: |
+          git config --global user.name "PizzaCrawlBot"
+          git config --global user.email "bot@pizzacrawl.local"
+          git add map.html index.html places_enriched.json places.json || true
+          if git diff --staged --quiet; then
+            echo "No changes detected in Google Sheet data."
+          else
+            git commit -m "Auto-sync: Updated pizza crawl map from Google Sheets [skip ci]"
+            git push origin main
+            echo "Successfully deployed updated map to main branch!"
+          fi

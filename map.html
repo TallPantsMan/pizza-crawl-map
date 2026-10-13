@@ -807,6 +807,8 @@
       const currentBounds = [];
       const routeCoords = [];
 
+      const markersToAdd = [];
+
       filtered.forEach(p => {
         const isWinner = (p.won_years && p.won_years.length > 0);
         const isClosed = (p.status === 'Closed');
@@ -823,10 +825,15 @@
         currentBounds.push(latLng);
         routeCoords.push(latLng);
 
+        // Strict Rank Stacking: Higher rank (#1) is in front, lower rank (#52) is in back
+        // For instance, spot #5 strictly obscures spot #23, never vice-versa
+        const effRank = (crawlVal !== 'ALL' && activeApp.rank) ? activeApp.rank : (p.best_rank || activeApp.rank || 99);
+        const baseRankZ = 250000 - (effRank * 3000);
+        const initialZOffset = (selectedPlaceId === p.id) ? (baseRankZ + 500000) : baseRankZ;
+
         // Map Marker & Popup (if map loaded)
         if (map && markersLayer) {
           const icon = createMarkerIcon(p, selectedPlaceId === p.id, activeApp.rank);
-          const zOffset = isWinner ? 500 : (100 - (activeApp.rank || 50));
 
           const crawlRows = p.appearances.map(a => {
             const scStr = a.score !== null ? a.score.toFixed(3) : 'Inaugural';
@@ -877,13 +884,29 @@
             </div>
           `;
 
-          const marker = L.marker(latLng, { icon, zIndexOffset: zOffset }).bindPopup(popupHtml, {
+          const marker = L.marker(latLng, { icon, zIndexOffset: initialZOffset }).bindPopup(popupHtml, {
             maxWidth: 325,
             autoPanPadding: [20, 20]
           });
 
+          // Elevate on hover, return to baseRankZ on mouseout
+          marker.on('mouseover', () => {
+            marker.setZIndexOffset(baseRankZ + 300000);
+          });
+          marker.on('mouseout', () => {
+            if (selectedPlaceId !== p.id) {
+              marker.setZIndexOffset(baseRankZ);
+            }
+          });
+
           marker.on('click', () => {
             selectedPlaceId = p.id;
+            // Reset all markers to their baseRankZ, elevate selected marker
+            Object.values(markersById).forEach(it => {
+              it.marker.setZIndexOffset(it.baseRankZ);
+            });
+            marker.setZIndexOffset(baseRankZ + 500000);
+
             document.querySelectorAll('.place-item').forEach(el => {
               el.classList.toggle('selected', el.getAttribute('data-id') === p.id);
             });
@@ -893,11 +916,11 @@
             }
           });
 
-          markersLayer.addLayer(marker);
-          markersById[p.id] = { marker, place: p, latLng };
+          markersToAdd.push(marker);
+          markersById[p.id] = { marker, place: p, latLng, baseRankZ };
         }
 
-        // Card Item for Sidebar (Clean, 2 Photos, High Legibility)
+        // Card Item for Sidebar
         const item = document.createElement('div');
         item.className = 'place-item' + (selectedPlaceId === p.id ? ' selected' : '');
         item.setAttribute('data-id', p.id);
@@ -931,6 +954,16 @@
 
         item.addEventListener('click', () => {
           selectedPlaceId = p.id;
+          // Reset all markers to their baseRankZ, elevate selected marker
+          if (map) {
+            Object.values(markersById).forEach(it => {
+              it.marker.setZIndexOffset(it.baseRankZ);
+            });
+            if (markersById[p.id]) {
+              markersById[p.id].marker.setZIndexOffset(markersById[p.id].baseRankZ + 500000);
+            }
+          }
+
           document.querySelectorAll('.place-item').forEach(el => {
             el.classList.toggle('selected', el.getAttribute('data-id') === p.id);
           });
@@ -947,6 +980,14 @@
 
         listEl.appendChild(item);
       });
+
+      // Add markers to markersLayer in REVERSE rank order:
+      // Lowest rank (#52) added FIRST -> Highest rank (#1) added LAST
+      // This ensures both DOM order and CSS zIndex place higher ranks on top!
+      if (map && markersLayer && markersToAdd.length > 0) {
+        markersToAdd.slice().reverse().forEach(m => markersLayer.addLayer(m));
+      }
+
 
       // Draw subtle crawl route connector when viewing single crawl
       if (map && routeLayer && crawlVal !== 'ALL' && routeCoords.length > 1) {

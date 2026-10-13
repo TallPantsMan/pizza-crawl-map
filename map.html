@@ -613,10 +613,11 @@
       <!-- MAP AREA -->
       <div class="map-wrap">
         <!-- Interactive Layer Switcher -->
+        <!-- Map Layer Switcher (Google Map Default) -->
         <div class="map-layer-switcher" id="layerSwitcher">
-          <button type="button" class="layer-pill active" data-layer="streets" title="Crisp high-contrast streets &amp; labels">🗺️ Streets</button>
-          <button type="button" class="layer-pill" data-layer="dark" title="Sleek dark theme canvas">🌙 Dark</button>
-          <button type="button" class="layer-pill" data-layer="sat" title="Satellite aerial imagery">🛰️ Satellite</button>
+          <button type="button" class="layer-pill active" data-layer="google" title="Official Google Map">🗺️ Google Map</button>
+          <button type="button" class="layer-pill" data-layer="sat" title="Google Satellite Hybrid">🛰️ Satellite</button>
+          <button type="button" class="layer-pill" data-layer="dark" title="Sleek Dark Mode">🌙 Dark Mode</button>
         </div>
 
         <div id="map"></div>
@@ -673,7 +674,7 @@
 
     let map = null;
     let baseLayers = {};
-    let currentBaseLayer = 'streets';
+    let currentBaseLayer = 'google';
     let markersLayer = null;
     let routeLayer = null;
     let markersById = {};
@@ -1022,22 +1023,26 @@
 
       L.control.zoom({ position: 'topright' }).addTo(map);
 
-      // Define Basemap Layers (Default: Crystal-Clear Street Labels)
+      // Authentic Google Maps Base Layers (Official Roadmap & Satellite)
       baseLayers = {
-        streets: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19
+        google: L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+          maxZoom: 20,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          attribution: '&copy; Google Maps'
+        }),
+        sat: L.tileLayer('https://{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', {
+          maxZoom: 20,
+          subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+          attribution: '&copy; Google Maps'
         }),
         dark: L.layerGroup([
           L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }),
           L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'overlayPane' })
-        ]),
-        sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-          maxZoom: 19
-        })
+        ])
       };
 
-      currentBaseLayer = 'streets';
-      baseLayers.streets.addTo(map);
+      currentBaseLayer = 'google';
+      baseLayers.google.addTo(map);
 
       function switchBaseLayer(name) {
         if (currentBaseLayer === name) return;

@@ -192,21 +192,27 @@ def run_sync(push_to_github=True):
         print("[Error in build_polished_map]:", res.stderr)
         return False
 
-    # 7. Push to GitHub if requested
-    if push_to_github and GITHUB_TOKEN:
-        print("Pushing updated files to GitHub repository...")
-        import push_to_github as gh_pusher
-        gh_pusher.update_file(
-            "map.html",
-            os.path.join(SCRIPT_DIR, "github_map.html"),
-            "Auto-sync: Updated pizza crawl map from Google Sheets"
-        )
-        gh_pusher.update_file(
-            "index.html",
-            os.path.join(SCRIPT_DIR, "github_map.html"),
-            "Auto-sync: Updated index.html from Google Sheets"
-        )
-        print("GitHub sync completed successfully!")
+    # 7. Push to GitHub if requested (only when running locally; GitHub Actions uses git CLI)
+    if push_to_github and GITHUB_TOKEN and os.environ.get("GITHUB_ACTIONS") != "true":
+        try:
+            print("Pushing updated files to GitHub repository...")
+            import push_to_github as gh_pusher
+            target_file = os.path.join(SCRIPT_DIR, "github_map.html")
+            if not os.path.exists(target_file):
+                target_file = os.path.join(SCRIPT_DIR, "map.html")
+            gh_pusher.update_file(
+                "map.html",
+                target_file,
+                "Auto-sync: Updated pizza crawl map from Google Sheets"
+            )
+            gh_pusher.update_file(
+                "index.html",
+                target_file,
+                "Auto-sync: Updated index.html from Google Sheets"
+            )
+            print("GitHub sync completed successfully!")
+        except Exception as e:
+            print(f"[Warning] GitHub API push skipped or failed: {e}")
 
     print("=" * 60)
     print("Sync complete! All 52 pizzerias, scores, and rankings are fully up to date.")

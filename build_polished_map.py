@@ -1592,7 +1592,7 @@ final_standalone_html = (
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 
 targets = [
-    r"c:\Users\alexh\Desktop\Pizza_Crawl_Google_Map.html",
+    r"c:\Users\alexh\Desktop\Games\NYC Pizza Crawl\Pizza_Crawl_Google_Map.html",
     r"C:\Users\alexh\.gemini\antigravity\brain\28b0ecdd-8d2a-4cf7-a88b-b0943b78da1f\pizza_crawl_map.html",
     os.path.join(curr_dir, "map.html"),
     os.path.join(curr_dir, "index.html"),

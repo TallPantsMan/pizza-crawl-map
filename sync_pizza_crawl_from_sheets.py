@@ -2,12 +2,14 @@
 """
 Autonomous Google Sheet Sync Pipeline for NYC Pizza Crawl Map
 Fetches live data from Google Sheets, recalculates scores/ranks/champions,
+handles new contestants, geocoding, custom photos/info,
 regenerates the map, and syncs both local desktop files and GitHub repository.
 """
 
 import os
 import sys
 import io
+import re
 import csv
 import json
 import base64
@@ -23,6 +25,40 @@ GITHUB_BRANCH = "main"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
+FALLBACK_PIZZA_PHOTOS = [
+    "https://lh3.googleusercontent.com/grass-cs/AABkmLenaK57Y3N9bZBT07kZoBy39tINapREo36PmQE9Nd-q6XxlShZBaSxJN3AG2Ygu2qPfcNWdk2Xt3oV2a7mYDGzWHK2eNdTCKLT6JlJbqiIQCBcvKYeoS4LswNPKdEEea5czpVlVqjIG6tdJ=w500-h360-k-no",
+    "https://lh3.googleusercontent.com/grass-cs/AABkmLfJAiM6i6NzMalmE-EkGyW9tkPaF_2Kgn5MckNVAf_5LGgt3XvN1x6SeeIkbu-5r__Fx0Tw9jhFpqi-aR47TwFuPW9o47jUZTPdKC9cDn3PCioJMMRExiKb9HyIW_zDb5T0s8qFFU-5QuPi=w500-h360-k-no",
+    "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QCwj8XAzg4-c_FOAlFxrWUtgHaPpTy1fNoIVKeLZ4opMpJG8aAl5OnQZJc2P-zzPBVAKM8HgRQm5w3azfZaETpQ90Lhz1LuXlF8GbrJItsOmUzO2_uVwNHkXQh6Kz_d2pdUhFk=w500-h360-k-no",
+    "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Sx-xcEAIHYV1Juk-D4a4lL5lCF6GQZ4qCol1qYYJSIDXYXsAqVcwxliAtr-QtmFXvRHnn_IZyPq29hX8nIOS4ZQ40ahB0WXGq8WXYu51VaKJqIawcEM_9v-sD_o7Z2o5noKGF1=w500-h360-k-no"
+]
+
+def geocode_place(name, address=""):
+    """Finds coordinates, verified address, and borough for a pizzeria in NYC."""
+    search_query = address if address else f"{name} New York City"
+    lat, lng = 40.730610, -73.935242
+    resolved_addr = address or f"{name}, New York, NY"
+    borough = "Manhattan"
+    try:
+        q = urllib.parse.quote(search_query)
+        url = f"https://nominatim.openstreetmap.org/search?q={q}&format=json&limit=1"
+        req = urllib.request.Request(url, headers={"User-Agent": "NYCPizzaCrawlBot/1.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data:
+                lat = round(float(data[0]["lat"]), 6)
+                lng = round(float(data[0]["lon"]), 6)
+                disp = data[0].get("display_name", "")
+                parts = [p.strip() for p in disp.split(",")]
+                if len(parts) >= 2:
+                    resolved_addr = f"{parts[0]}, {parts[1]}, NY"
+                for b in ["Brooklyn", "Queens", "Bronx", "Staten Island", "Manhattan"]:
+                    if b.lower() in disp.lower():
+                        borough = b
+                        break
+    except Exception as ge:
+        print(f"[Geocoding Note] {name}: {ge}")
+    return lat, lng, resolved_addr, borough
+
 def fetch_live_sheet_csv():
     req = urllib.request.Request(
         SHEET_CSV_URL,
@@ -36,22 +72,59 @@ def fetch_live_sheet_csv():
     return rows
 
 def parse_sheet_rows(rows):
+    header_idx = -1
+    col_map = {"year": 0, "crawl_name": 1, "contestant": 2, "score": 3, "rank": 4}
+    for i, r in enumerate(rows[:5]):
+        r_low = [c.strip().lower() for c in r]
+        if any("contestant" in c for c in r_low):
+            header_idx = i
+            col_map = {}
+            for c_i, c_txt in enumerate(r_low):
+                if "year" in c_txt:
+                    col_map["year"] = c_i
+                elif "crawl" in c_txt:
+                    col_map["crawl_name"] = c_i
+                elif "contestant" in c_txt or "pizza" in c_txt or "place" in c_txt:
+                    col_map["contestant"] = c_i
+                elif "score" in c_txt or "avg" in c_txt:
+                    col_map["score"] = c_i
+                elif "rank" in c_txt:
+                    col_map["rank"] = c_i
+                elif "addr" in c_txt:
+                    col_map["address"] = c_i
+                elif "photo" in c_txt or "img" in c_txt or "image" in c_txt:
+                    col_map["photo"] = c_i
+                elif "note" in c_txt or "desc" in c_txt:
+                    col_map["notes"] = c_i
+                elif "borough" in c_txt or "hood" in c_txt or "region" in c_txt:
+                    col_map["borough"] = c_i
+            break
+
     entries = []
-    for r in rows:
-        if len(r) >= 3 and r[0].strip().isdigit():
-            year = int(r[0].strip())
-            crawl_name = r[1].strip()
-            contestant = r[2].strip().replace('\ufffd', "'")
-            score_str = r[3].strip() if len(r) > 3 else ""
-            score = float(score_str) if score_str else None
-            rank_str = r[4].strip() if len(r) > 4 else ""
-            sheet_rank = int(rank_str) if rank_str.isdigit() else None
+    start_row = header_idx + 1 if header_idx >= 0 else 0
+    for r in rows[start_row:]:
+        if len(r) > col_map.get("year", 0) and r[col_map["year"]].strip().isdigit():
+            y = int(r[col_map["year"]].strip())
+            c_name = r[col_map["crawl_name"]].strip() if "crawl_name" in col_map and len(r) > col_map["crawl_name"] else ""
+            cont = r[col_map["contestant"]].strip().replace('\ufffd', "'") if "contestant" in col_map and len(r) > col_map["contestant"] else ""
+            score_s = r[col_map["score"]].strip() if "score" in col_map and len(r) > col_map["score"] else ""
+            score = float(score_s) if score_s else None
+            rank_s = r[col_map["rank"]].strip() if "rank" in col_map and len(r) > col_map["rank"] else ""
+            sheet_rank = int(rank_s) if rank_s.isdigit() else None
+            addr = r[col_map["address"]].strip() if "address" in col_map and len(r) > col_map["address"] else ""
+            photo = r[col_map["photo"]].strip() if "photo" in col_map and len(r) > col_map["photo"] else ""
+            notes = r[col_map["notes"]].strip() if "notes" in col_map and len(r) > col_map["notes"] else ""
+            borough = r[col_map["borough"]].strip() if "borough" in col_map and len(r) > col_map["borough"] else ""
             entries.append({
-                "year": year,
-                "crawl_name": crawl_name,
-                "contestant": contestant,
+                "year": y,
+                "crawl_name": c_name,
+                "contestant": cont,
                 "score": score,
-                "sheet_rank": sheet_rank
+                "sheet_rank": sheet_rank,
+                "address": addr,
+                "photo": photo,
+                "notes": notes,
+                "borough": borough
             })
     print(f"Parsed {len(entries)} valid crawl entries from Google Sheets.")
     return entries
@@ -70,8 +143,8 @@ def run_sync(push_to_github=True):
     import generate_pizza_maps
     import build_polished_map
 
-    places = generate_pizza_maps.PIZZA_PLACES
-    crawls_meta = build_polished_map.CRAWLS_META
+    places = list(generate_pizza_maps.PIZZA_PLACES)
+    crawls_meta = dict(build_polished_map.CRAWLS_META)
 
     # Lookup mapping for places
     lookup = {}
@@ -104,38 +177,75 @@ def run_sync(push_to_github=True):
                     break
         if not p:
             if 'williamsburg' in key and yr == 2016:
-                p = next(x for x in places if x['id'] == 'williamsburg-bk')
+                p = next((x for x in places if x['id'] == 'williamsburg-bk'), None)
             elif 'williamsburg' in key and yr == 2017:
-                p = next(x for x in places if x['id'] == 'williamsburg-les')
+                p = next((x for x in places if x['id'] == 'williamsburg-les'), None)
             elif 'difara' in key:
-                p = next(x for x in places if x['id'] == 'difara')
+                p = next((x for x in places if x['id'] == 'difara'), None)
             elif 'john' in key:
-                p = next(x for x in places if x['id'] == 'johns-bleecker')
+                p = next((x for x in places if x['id'] == 'johns-bleecker'), None)
             elif 'arturo' in key:
-                p = next(x for x in places if x['id'] == 'arturos')
+                p = next((x for x in places if x['id'] == 'arturos'), None)
 
-        if p:
-            place_appearances[p["id"]].append({
-                "year": yr,
-                "crawl": c_name,
-                "score": score
-            })
+        if not p:
+            # Auto-provision new contestant!
+            pid = re.sub(r'[^a-z0-9]+', '-', contestant.lower()).strip('-')
+            lat, lng, res_addr, res_borough = geocode_place(contestant, address=e.get("address"))
+            if e.get("borough"):
+                res_borough = e["borough"]
+            photos = [e["photo"]] if e.get("photo") else FALLBACK_PIZZA_PHOTOS[:2]
+            p = {
+                "id": pid,
+                "name": contestant,
+                "sheet_names": [contestant],
+                "address": e.get("address") or res_addr,
+                "neighborhood": res_borough,
+                "region": res_borough,
+                "lat": lat,
+                "lng": lng,
+                "display_lat": lat,
+                "display_lng": lng,
+                "best_rank": 99,
+                "best_score": None,
+                "appearances": [],
+                "notes": e.get("notes") or f"Contestant added in {yr}.",
+                "style": "NY Pizzeria",
+                "specialty": "Signature Slice",
+                "status": "Open",
+                "photos": photos
+            }
+            places.append(p)
+            lookup[key] = p
+            lookup[clean_key] = p
+            place_appearances[pid] = []
+            print(f"[Auto-Provisioned New Place] '{contestant}' -> ID: {pid}, Lat: {lat}, Lng: {lng}, Borough: {res_borough}")
         else:
-            print(f"[Warning] New or unmapped contestant '{contestant}' in {yr}!")
+            # Update existing place with custom photo/address/notes if provided in sheet
+            if e.get("address"):
+                p["address"] = e["address"]
+            if e.get("photo"):
+                p["photos"] = [e["photo"]]
+            if e.get("notes"):
+                p["notes"] = e["notes"]
+            if e.get("borough"):
+                p["region"] = e["borough"]
+                p["neighborhood"] = e["borough"]
+
+        place_appearances[p["id"]].append({
+            "year": yr,
+            "crawl": c_name,
+            "score": score
+        })
 
     # 3. Determine crawl winners and calculate intra-crawl rank
     crawl_winners_map = {}
     for yr, c_entries in crawls_by_year.items():
-        # Sort by score descending
         scored = [x for x in c_entries if x["score"] is not None]
         unscored = [x for x in c_entries if x["score"] is None]
         scored.sort(key=lambda x: -x["score"])
-        ordered = scored + unscored
         
-        # Winner is highest score
         if scored:
             top_contestant = scored[0]["contestant"]
-            # Find place
             top_p = lookup.get(top_contestant.lower())
             if top_p:
                 crawl_winners_map.setdefault(top_p["id"], []).append(yr)
@@ -143,16 +253,13 @@ def run_sync(push_to_github=True):
     # 4. Update each place's appearances, best_score, and won_years
     for p in places:
         apps = place_appearances.get(p["id"], p.get("appearances", []))
-        # Sort appearances by year descending
         apps.sort(key=lambda a: -a["year"])
         p["appearances"] = apps
         p["appearances_count"] = len(apps)
 
-        # Best score
         valid_scores = [a["score"] for a in apps if a.get("score") is not None]
         p["best_score"] = max(valid_scores) if valid_scores else None
 
-        # Won years
         w_yrs = sorted(crawl_winners_map.get(p["id"], []))
         p["won_years"] = w_yrs
         p["is_crawl_winner"] = len(w_yrs) > 0
@@ -167,9 +274,8 @@ def run_sync(push_to_github=True):
     for rk_idx, p in enumerate(unscored_places, len(scored_places) + 1):
         p["best_rank"] = rk_idx
 
-    # Also calculate rank inside each appearance
+    # Intra-crawl rankings
     for yr, c_entries in crawls_by_year.items():
-        # Sort places appearing in this crawl
         in_yr = []
         for p in places:
             app = next((a for a in p["appearances"] if a["year"] == yr), None)
@@ -182,8 +288,22 @@ def run_sync(push_to_github=True):
 
     print(f"Rankings and crawl winners successfully recalculated for all {len(places)} pizzerias.")
 
-    # 6. Run build_polished_map to generate output files
-    # build_polished_map will re-embed the updated PIZZA_PLACES into HTML
+    # 6. Save enriched places JSON before building map
+    enriched_payload = {"places": places, "crawls": crawls_meta}
+    for ppath in [
+        os.path.join(SCRIPT_DIR, "places_enriched.json"),
+        os.path.join(SCRIPT_DIR, "places.json"),
+        r"C:\Users\alexh\.gemini\antigravity\brain\28b0ecdd-8d2a-4cf7-a88b-b0943b78da1f\scratch\places_enriched.json"
+    ]:
+        try:
+            os.makedirs(os.path.dirname(ppath), exist_ok=True)
+            with open(ppath, "w", encoding="utf-8") as pf:
+                json.dump(enriched_payload, pf, indent=2, ensure_ascii=False)
+            print(f"Saved pre-build data to {ppath}")
+        except Exception:
+            pass
+
+    # 7. Run build_polished_map to generate output files
     import subprocess
     cmd = [sys.executable, os.path.join(SCRIPT_DIR, "build_polished_map.py")]
     res = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8")
@@ -192,7 +312,7 @@ def run_sync(push_to_github=True):
         print("[Error in build_polished_map]:", res.stderr)
         return False
 
-    # 7. Push to GitHub if requested (only when running locally; GitHub Actions uses git CLI)
+    # 8. Push to GitHub if requested (only when running locally; GitHub Actions uses git CLI)
     if push_to_github and GITHUB_TOKEN and os.environ.get("GITHUB_ACTIONS") != "true":
         try:
             print("Pushing updated files to GitHub repository...")
@@ -215,7 +335,7 @@ def run_sync(push_to_github=True):
             print(f"[Warning] GitHub API push skipped or failed: {e}")
 
     print("=" * 60)
-    print("Sync complete! All 52 pizzerias, scores, and rankings are fully up to date.")
+    print(f"Sync complete! All {len(places)} pizzerias, scores, and rankings are fully up to date.")
     print("=" * 60)
     return True
 

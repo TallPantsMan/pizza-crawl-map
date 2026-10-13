@@ -736,7 +736,7 @@
 
           const marker = L.marker(latLng, { icon, zIndexOffset: initialZOffset }).bindPopup(popupHtml, {
             maxWidth: 310,
-            autoPanPadding: [20, 20]
+            autoPanPaddingTopLeft: [30, 130], autoPanPaddingBottomRight: [30, 30]
           });
 
           marker.on('mouseover', () => marker.setZIndexOffset(baseRankZ + 300000));

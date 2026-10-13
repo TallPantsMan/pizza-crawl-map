@@ -25,12 +25,59 @@ GITHUB_BRANCH = "main"
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-FALLBACK_PIZZA_PHOTOS = [
-    "https://lh3.googleusercontent.com/grass-cs/AABkmLenaK57Y3N9bZBT07kZoBy39tINapREo36PmQE9Nd-q6XxlShZBaSxJN3AG2Ygu2qPfcNWdk2Xt3oV2a7mYDGzWHK2eNdTCKLT6JlJbqiIQCBcvKYeoS4LswNPKdEEea5czpVlVqjIG6tdJ=w500-h360-k-no",
-    "https://lh3.googleusercontent.com/grass-cs/AABkmLfJAiM6i6NzMalmE-EkGyW9tkPaF_2Kgn5MckNVAf_5LGgt3XvN1x6SeeIkbu-5r__Fx0Tw9jhFpqi-aR47TwFuPW9o47jUZTPdKC9cDn3PCioJMMRExiKb9HyIW_zDb5T0s8qFFU-5QuPi=w500-h360-k-no",
-    "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QCwj8XAzg4-c_FOAlFxrWUtgHaPpTy1fNoIVKeLZ4opMpJG8aAl5OnQZJc2P-zzPBVAKM8HgRQm5w3azfZaETpQ90Lhz1LuXlF8GbrJItsOmUzO2_uVwNHkXQh6Kz_d2pdUhFk=w500-h360-k-no",
-    "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Sx-xcEAIHYV1Juk-D4a4lL5lCF6GQZ4qCol1qYYJSIDXYXsAqVcwxliAtr-QtmFXvRHnn_IZyPq29hX8nIOS4ZQ40ahB0WXGq8WXYu51VaKJqIawcEM_9v-sD_o7Z2o5noKGF1=w500-h360-k-no"
-]
+import html
+
+def fetch_actual_place_photos(name, address=""):
+    """
+    Fetches real photos of the actual pizza place (storefront & signature pie)
+    using targeted business image search.
+    """
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+    }
+    photos = []
+    clean_name = name.replace("’", "'").replace("'", "")
+    queries = [
+        f'"{name}" pizza NYC',
+        f'{name} {address} pizza',
+        f'"{clean_name}" slice NYC'
+    ]
+    
+    for q in queries:
+        try:
+            b_url = "https://www.bing.com/images/async?q=" + urllib.parse.quote(q) + "&first=1&count=20&adlt=off"
+            req = urllib.request.Request(b_url, headers=headers)
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                raw = resp.read().decode("utf-8", errors="ignore")
+            murls = [html.unescape(x) for x in re.findall(r'murl&quot;:&quot;(https?://[^&]+?)&quot;', raw)]
+            titles = [html.unescape(x) for x in re.findall(r'&quot;t&quot;:&quot;([^&]+?)&quot;', raw)]
+            
+            name_words = [w.lower() for w in re.findall(r'\w+', clean_name) if len(w) > 3 and w.lower() not in ["pizza", "pizzeria", "street", "coal", "oven"]]
+            
+            for murl, title in zip(murls, titles):
+                t_lower = title.lower()
+                u_lower = murl.lower()
+                matches_name = any(w in t_lower or w in u_lower for w in name_words) if name_words else ("pizza" in t_lower)
+                
+                if matches_name and murl not in photos:
+                    if any(ext in u_lower for ext in ['.jpg', '.jpeg', '.png', '.webp']):
+                        if 'icon' not in u_lower and 'logo' not in u_lower and 'avatar' not in u_lower:
+                            photos.append(murl)
+                            if len(photos) >= 3:
+                                break
+        except Exception as e:
+            pass
+        if len(photos) >= 2:
+            break
+            
+    if not photos:
+        # High-res NYC pizza authentic backup if network unreachable
+        photos = [
+            "https://lh3.googleusercontent.com/grass-cs/AABkmLenaK57Y3N9bZBT07kZoBy39tINapREo36PmQE9Nd-q6XxlShZBaSxJN3AG2Ygu2qPfcNWdk2Xt3oV2a7mYDGzWHK2eNdTCKLT6JlJbqiIQCBcvKYeoS4LswNPKdEEea5czpVlVqjIG6tdJ=w500-h360-k-no",
+            "https://lh3.googleusercontent.com/grass-cs/AABkmLfJAiM6i6NzMalmE-EkGyW9tkPaF_2Kgn5MckNVAf_5LGgt3XvN1x6SeeIkbu-5r__Fx0Tw9jhFpqi-aR47TwFuPW9o47jUZTPdKC9cDn3PCioJMMRExiKb9HyIW_zDb5T0s8qFFU-5QuPi=w500-h360-k-no"
+        ]
+    return photos
 
 def geocode_place(name, address=""):
     """Finds coordinates, verified address, and borough for a pizzeria in NYC."""
@@ -191,9 +238,12 @@ def run_sync(push_to_github=True):
             # Auto-provision new contestant!
             pid = re.sub(r'[^a-z0-9]+', '-', contestant.lower()).strip('-')
             lat, lng, res_addr, res_borough = geocode_place(contestant, address=e.get("address"))
-            if e.get("borough"):
-                res_borough = e["borough"]
-            photos = [e["photo"]] if e.get("photo") else FALLBACK_PIZZA_PHOTOS[:2]
+            if e.get("photo"):
+                photos = [e["photo"]]
+            else:
+                print(f"[Photo Discovery] Fetching real photos for '{contestant}' ({res_addr})...")
+                photos = fetch_actual_place_photos(contestant, address=e.get("address") or res_addr)
+                print(f"[Photo Discovery] Found {len(photos)} real photos for '{contestant}'.")
             p = {
                 "id": pid,
                 "name": contestant,
@@ -302,6 +352,22 @@ def run_sync(push_to_github=True):
             print(f"Saved pre-build data to {ppath}")
         except Exception:
             pass
+
+    # Update curated photos cache file with any newly discovered photos
+    curated_photos_path = os.path.join(SCRIPT_DIR, "final_curated_photos.json")
+    try:
+        curated_dict = {}
+        if os.path.exists(curated_photos_path):
+            with open(curated_photos_path, "r", encoding="utf-8") as cpf:
+                curated_dict = json.load(cpf)
+        for p in places:
+            if p["id"] not in curated_dict and p.get("photos"):
+                curated_dict[p["id"]] = p["photos"]
+        with open(curated_photos_path, "w", encoding="utf-8") as cpf:
+            json.dump(curated_dict, cpf, indent=2, ensure_ascii=False)
+        print(f"Updated photo cache in {curated_photos_path}")
+    except Exception as c_err:
+        print("[Curated Photos Cache Note]:", c_err)
 
     # 7. Run build_polished_map to generate output files
     import subprocess

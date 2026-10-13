@@ -109,253 +109,260 @@
   </div>
 
   <script>
-    let PLACES = [];
-    let mobileListOpen = false;
-    let userLocationMarker = null;
-    let currentFilteredCount = 52;
-
-    const map = L.map('map', {
-      center: [40.735, -73.965],
-      zoom: 12,
-      zoomControl: false
-    });
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0','mt1','mt2','mt3'],
-      attribution: '&copy; Google Maps'
-    }).addTo(map);
-
-    const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-      maxZoom: 20,
-      subdomains: ['mt0','mt1','mt2','mt3'],
-      attribution: '&copy; Google Maps Satellite'
-    });
-
-    L.control.layers({
-      "Google Maps": googleStreets,
-      "Satellite": googleHybrid
-    }, null, { position: 'topright' }).addTo(map);
-
-    const markersLayer = L.layerGroup().addTo(map);
-
-    function getTierColor(score) {
-      if (score === null || score === undefined) return '#8b5cf6';
-      if (score >= 4.0) return '#f59e0b';
-      if (score >= 3.6) return '#10b981';
-      if (score >= 3.2) return '#3b82f6';
-      return '#f43f5e';
-    }
-
-    function toggleMobileView(forceMap) {
-      const sidebar = document.getElementById('sidebarPanel');
-      const icon = document.getElementById('mobileToggleIcon');
-      const text = document.getElementById('mobileToggleText');
-      if (forceMap === true) {
-        mobileListOpen = false;
-      } else {
-        mobileListOpen = !mobileListOpen;
-      }
-      if (mobileListOpen) {
-        sidebar.classList.remove('hidden');
-        sidebar.classList.add('flex');
-        icon.textContent = '🗺️';
-        text.textContent = 'Map View';
-      } else {
-        sidebar.classList.add('hidden');
-        sidebar.classList.remove('flex');
-        icon.textContent = '🏆';
-        text.textContent = `List (${currentFilteredCount})`;
-        setTimeout(() => map.invalidateSize(), 50);
-      }
-    }
-
-    function render() {
-      const crawlVal = document.getElementById('crawlFilter').value;
-      const regionVal = document.getElementById('regionFilter').value;
-      const query = document.getElementById('searchInput').value.trim().toLowerCase();
-
-      markersLayer.clearLayers();
-      const listEl = document.getElementById('placesList');
-      listEl.innerHTML = '';
-
-      const filtered = PLACES.filter(p => {
-        if (regionVal !== 'ALL' && p.region !== regionVal) return false;
-        if (crawlVal !== 'ALL') {
-          const yr = parseInt(crawlVal, 10);
-          if (!p.appearances.some(a => a.year === yr)) return false;
-        }
-        if (query) {
-          const hay = (p.name + ' ' + p.neighborhood + ' ' + p.region + ' ' + p.address + ' ' + p.notes).toLowerCase();
-          if (!hay.includes(query)) return false;
-        }
-        return true;
-      });
-
-      filtered.sort((a, b) => {
-        if (crawlVal !== 'ALL') {
-          const yr = parseInt(crawlVal, 10);
-          const appA = a.appearances.find(x => x.year === yr);
-          const appB = b.appearances.find(x => x.year === yr);
-          const rA = appA && appA.rank ? appA.rank : 999;
-          const rB = appB && appB.rank ? appB.rank : 999;
-          return rA - rB;
-        }
-        const rA = a.best_rank ? a.best_rank : 999;
-        const rB = b.best_rank ? b.best_rank : 999;
-        return rA - rB;
-      });
-
-      currentFilteredCount = filtered.length;
-      document.getElementById('countLabel').textContent = `Showing ${filtered.length} pizzeria${filtered.length === 1 ? '' : 's'}`;
-      if (!mobileListOpen) {
-        document.getElementById('mobileToggleText').textContent = `List (${filtered.length})`;
-      }
-
-      const bounds = [];
-
-      filtered.forEach(p => {
-        let activeApp = p.appearances[0];
-        if (crawlVal !== 'ALL') {
-          const yr = parseInt(crawlVal, 10);
-          activeApp = p.appearances.find(x => x.year === yr) || p.appearances[0];
-        }
-        const color = getTierColor(activeApp.score);
-
-        const icon = L.divIcon({
-          className: '',
-          html: `<div class="custom-pin" style="background:${color};width:32px;height:32px;">${activeApp.rank ? activeApp.rank : '★'}</div>`,
-          iconSize: [32, 32],
-          iconAnchor: [16, 16],
-          popupAnchor: [0, -16]
-        });
-
-        const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
-        const appsHtml = p.appearances.map(a =>
-          `<div class="text-xs py-1 flex items-center justify-between gap-2 border-b border-slate-100 last:border-0">
-            <span class="text-slate-700 font-medium">${a.year} — ${a.crawl}</span>
-            <span class="font-bold text-slate-900 whitespace-nowrap">${a.score !== null ? a.score.toFixed(3) + ' (#' + a.rank + ')' : 'Inaugural'}</span>
-          </div>`
-        ).join('');
-
-        const popupHtml = `
-          <div class="min-w-[240px] max-w-[280px] text-slate-900">
-            <span class="inline-block text-xs font-bold px-2 py-0.5 rounded text-white mb-1" style="background:${color}">
-              ${activeApp.rank ? 'Rank #' + activeApp.rank : '2015 Crawl'} • ${activeApp.score !== null ? activeApp.score.toFixed(3) : 'Unscored'}
-            </span>
-            <h3 class="font-bold text-base leading-snug">${p.name}</h3>
-            <p class="text-xs text-slate-500">${p.neighborhood} • ${p.region}</p>
-            <p class="text-xs text-slate-600 mt-1">${p.address}</p>
-            <div class="mt-2 bg-slate-50 rounded-lg p-2 border border-slate-200">
-              <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Crawl History</div>
-              ${appsHtml}
-            </div>
-            <p class="text-xs italic text-slate-500 mt-1.5">${p.notes}</p>
-            <a href="${gmapsUrl}" target="_blank" rel="noopener" class="mt-2.5 block w-full text-center bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow transition">
-              Open in Google Maps App ↗
-            </a>
-          </div>
-        `;
-
-        const marker = L.marker([p.lat, p.lng], { icon }).bindPopup(popupHtml);
-        markersLayer.addLayer(marker);
-        bounds.push([p.lat, p.lng]);
-
-        const item = document.createElement('div');
-        item.className = 'p-3.5 hover:bg-slate-800/70 active:bg-slate-800 cursor-pointer transition flex items-start gap-3';
-        item.innerHTML = `
-          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 mt-0.5" style="background:${color}">
-            ${activeApp.rank ? '#' + activeApp.rank : '★'}
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between gap-2">
-              <h4 class="font-semibold text-sm text-white truncate">${p.name}</h4>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700 shrink-0">
-                ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}
-              </span>
-            </div>
-            <p class="text-xs text-slate-400 truncate mt-0.5">${p.neighborhood} (${p.region}) • ${p.address}</p>
-          </div>
-        `;
-        item.addEventListener('click', () => {
-          if (window.innerWidth < 768) {
-            toggleMobileView(true);
-          }
-          setTimeout(() => {
-            map.setView([p.lat, p.lng], 16, { animate: true });
-            marker.openPopup();
-          }, 80);
-        });
-        listEl.appendChild(item);
-      });
-
-      if (bounds.length > 0) {
-        if (crawlVal === 'ALL' && regionVal === 'ALL' && !query) {
-          map.setView([40.735, -73.965], 11);
-        } else {
-          map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
-        }
-      }
-    }
-
-    document.getElementById('mobileToggleBtn').addEventListener('click', () => toggleMobileView());
-    document.getElementById('crawlFilter').addEventListener('change', render);
-    document.getElementById('regionFilter').addEventListener('change', render);
-    document.getElementById('searchInput').addEventListener('input', render);
-
-    document.getElementById('locateBtn').addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser.');
+    function bootApp() {
+      if (typeof L === 'undefined') {
+        setTimeout(bootApp, 50);
         return;
       }
-      navigator.geolocation.getCurrentPosition(pos => {
-        const { latitude, longitude } = pos.coords;
-        if (userLocationMarker) map.removeLayer(userLocationMarker);
-        userLocationMarker = L.circleMarker([latitude, longitude], {
-          radius: 9,
-          fillColor: '#3b82f6',
-          color: '#ffffff',
-          weight: 3,
-          fillOpacity: 1
-        }).addTo(map).bindPopup('<b>You are here</b>').openPopup();
-        map.setView([latitude, longitude], 14, { animate: true });
-      }, () => {
-        alert('Unable to retrieve your location. Make sure location permissions are enabled.');
-      });
-    });
+      let PLACES = [];
+      let mobileListOpen = false;
+      let userLocationMarker = null;
+      let currentFilteredCount = 52;
 
-    document.getElementById('shareBtn').addEventListener('click', async () => {
-      const shareUrl = window.location.href;
-      const shareData = {
-        title: '🍕 Pizza Crawl Map (2015–2026)',
-        text: 'Interactive map & rankings of all 52 Pizza Crawl pizzerias (2015–2026):',
-        url: shareUrl
-      };
-      if (navigator.share) {
-        try {
-          await navigator.share(shareData);
+      const map = L.map('map', {
+        center: [40.735, -73.965],
+        zoom: 12,
+        zoomControl: false
+      });
+
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0','mt1','mt2','mt3'],
+        attribution: '&copy; Google Maps'
+      }).addTo(map);
+
+      const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0','mt1','mt2','mt3'],
+        attribution: '&copy; Google Maps Satellite'
+      });
+
+      L.control.layers({
+        "Google Maps": googleStreets,
+        "Satellite": googleHybrid
+      }, null, { position: 'topright' }).addTo(map);
+
+      const markersLayer = L.layerGroup().addTo(map);
+
+      function getTierColor(score) {
+        if (score === null || score === undefined) return '#8b5cf6';
+        if (score >= 4.0) return '#f59e0b';
+        if (score >= 3.6) return '#10b981';
+        if (score >= 3.2) return '#3b82f6';
+        return '#f43f5e';
+      }
+
+      function toggleMobileView(forceMap) {
+        const sidebar = document.getElementById('sidebarPanel');
+        const icon = document.getElementById('mobileToggleIcon');
+        const text = document.getElementById('mobileToggleText');
+        if (forceMap === true) {
+          mobileListOpen = false;
+        } else {
+          mobileListOpen = !mobileListOpen;
+        }
+        if (mobileListOpen) {
+          sidebar.classList.remove('hidden');
+          sidebar.classList.add('flex');
+          icon.textContent = '🗺️';
+          text.textContent = 'Map View';
+        } else {
+          sidebar.classList.add('hidden');
+          sidebar.classList.remove('flex');
+          icon.textContent = '🏆';
+          text.textContent = `List (${currentFilteredCount})`;
+          setTimeout(() => map.invalidateSize(), 50);
+        }
+      }
+
+      function render() {
+        const crawlVal = document.getElementById('crawlFilter').value;
+        const regionVal = document.getElementById('regionFilter').value;
+        const query = document.getElementById('searchInput').value.trim().toLowerCase();
+
+        markersLayer.clearLayers();
+        const listEl = document.getElementById('placesList');
+        listEl.innerHTML = '';
+
+        const filtered = PLACES.filter(p => {
+          if (regionVal !== 'ALL' && p.region !== regionVal) return false;
+          if (crawlVal !== 'ALL') {
+            const yr = parseInt(crawlVal, 10);
+            if (!p.appearances.some(a => a.year === yr)) return false;
+          }
+          if (query) {
+            const hay = (p.name + ' ' + p.neighborhood + ' ' + p.region + ' ' + p.address + ' ' + p.notes).toLowerCase();
+            if (!hay.includes(query)) return false;
+          }
+          return true;
+        });
+
+        filtered.sort((a, b) => {
+          if (crawlVal !== 'ALL') {
+            const yr = parseInt(crawlVal, 10);
+            const appA = a.appearances.find(x => x.year === yr);
+            const appB = b.appearances.find(x => x.year === yr);
+            const rA = appA && appA.rank ? appA.rank : 999;
+            const rB = appB && appB.rank ? appB.rank : 999;
+            return rA - rB;
+          }
+          const rA = a.best_rank ? a.best_rank : 999;
+          const rB = b.best_rank ? b.best_rank : 999;
+          return rA - rB;
+        });
+
+        currentFilteredCount = filtered.length;
+        document.getElementById('countLabel').textContent = `Showing ${filtered.length} pizzeria${filtered.length === 1 ? '' : 's'}`;
+        if (!mobileListOpen) {
+          document.getElementById('mobileToggleText').textContent = `List (${filtered.length})`;
+        }
+
+        const bounds = [];
+
+        filtered.forEach(p => {
+          let activeApp = p.appearances[0];
+          if (crawlVal !== 'ALL') {
+            const yr = parseInt(crawlVal, 10);
+            activeApp = p.appearances.find(x => x.year === yr) || p.appearances[0];
+          }
+          const color = getTierColor(activeApp.score);
+
+          const icon = L.divIcon({
+            className: '',
+            html: `<div class="custom-pin" style="background:${color};width:32px;height:32px;">${activeApp.rank ? activeApp.rank : '★'}</div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+          });
+
+          const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
+          const appsHtml = p.appearances.map(a =>
+            `<div class="text-xs py-1 flex items-center justify-between gap-2 border-b border-slate-100 last:border-0">
+              <span class="text-slate-700 font-medium">${a.year} — ${a.crawl}</span>
+              <span class="font-bold text-slate-900 whitespace-nowrap">${a.score !== null ? a.score.toFixed(3) + ' (#' + a.rank + ')' : 'Inaugural'}</span>
+            </div>`
+          ).join('');
+
+          const popupHtml = `
+            <div class="min-w-[240px] max-w-[280px] text-slate-900">
+              <span class="inline-block text-xs font-bold px-2 py-0.5 rounded text-white mb-1" style="background:${color}">
+                ${activeApp.rank ? 'Rank #' + activeApp.rank : '2015 Crawl'} • ${activeApp.score !== null ? activeApp.score.toFixed(3) : 'Unscored'}
+              </span>
+              <h3 class="font-bold text-base leading-snug">${p.name}</h3>
+              <p class="text-xs text-slate-500">${p.neighborhood} • ${p.region}</p>
+              <p class="text-xs text-slate-600 mt-1">${p.address}</p>
+              <div class="mt-2 bg-slate-50 rounded-lg p-2 border border-slate-200">
+                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-0.5">Crawl History</div>
+                ${appsHtml}
+              </div>
+              <p class="text-xs italic text-slate-500 mt-1.5">${p.notes}</p>
+              <a href="${gmapsUrl}" target="_blank" rel="noopener" class="mt-2.5 block w-full text-center bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs py-2.5 rounded-lg shadow transition">
+                Open in Google Maps App ↗
+              </a>
+            </div>
+          `;
+
+          const marker = L.marker([p.lat, p.lng], { icon }).bindPopup(popupHtml);
+          markersLayer.addLayer(marker);
+          bounds.push([p.lat, p.lng]);
+
+          const item = document.createElement('div');
+          item.className = 'p-3.5 hover:bg-slate-800/70 active:bg-slate-800 cursor-pointer transition flex items-start gap-3';
+          item.innerHTML = `
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shrink-0 mt-0.5" style="background:${color}">
+              ${activeApp.rank ? '#' + activeApp.rank : '★'}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <h4 class="font-semibold text-sm text-white truncate">${p.name}</h4>
+                <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-800 text-amber-400 border border-slate-700 shrink-0">
+                  ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}
+                </span>
+              </div>
+              <p class="text-xs text-slate-400 truncate mt-0.5">${p.neighborhood} (${p.region}) • ${p.address}</p>
+            </div>
+          `;
+          item.addEventListener('click', () => {
+            if (window.innerWidth < 768) {
+              toggleMobileView(true);
+            }
+            setTimeout(() => {
+              map.setView([p.lat, p.lng], 16, { animate: true });
+              marker.openPopup();
+            }, 80);
+          });
+          listEl.appendChild(item);
+        });
+
+        if (bounds.length > 0) {
+          if (crawlVal === 'ALL' && regionVal === 'ALL' && !query) {
+            map.setView([40.735, -73.965], 11);
+          } else {
+            map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
+          }
+        }
+      }
+
+      document.getElementById('mobileToggleBtn').addEventListener('click', () => toggleMobileView());
+      document.getElementById('crawlFilter').addEventListener('change', render);
+      document.getElementById('regionFilter').addEventListener('change', render);
+      document.getElementById('searchInput').addEventListener('input', render);
+
+      document.getElementById('locateBtn').addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
           return;
-        } catch (err) {}
-      }
-      try {
-        await navigator.clipboard.writeText(shareUrl);
-        const btn = document.getElementById('shareBtn');
-        const orig = btn.innerHTML;
-        btn.innerHTML = '<span>✅</span><span>Copied!</span>';
-        setTimeout(() => { btn.innerHTML = orig; }, 2000);
-      } catch (e) {
-        prompt('Copy this link to send to your friend:', shareUrl);
-      }
-    });
-
-    fetch('https://raw.githubusercontent.com/TallPantsMan/pizza-crawl-map/main/places.json')
-      .then(r => r.json())
-      .then(data => {
-        PLACES = data;
-        render();
+        }
+        navigator.geolocation.getCurrentPosition(pos => {
+          const { latitude, longitude } = pos.coords;
+          if (userLocationMarker) map.removeLayer(userLocationMarker);
+          userLocationMarker = L.circleMarker([latitude, longitude], {
+            radius: 9,
+            fillColor: '#3b82f6',
+            color: '#ffffff',
+            weight: 3,
+            fillOpacity: 1
+          }).addTo(map).bindPopup('<b>You are here</b>').openPopup();
+          map.setView([latitude, longitude], 14, { animate: true });
+        }, () => {
+          alert('Unable to retrieve your location. Make sure location permissions are enabled.');
+        });
       });
+
+      document.getElementById('shareBtn').addEventListener('click', async () => {
+        const shareUrl = window.location.href;
+        const shareData = {
+          title: '🍕 Pizza Crawl Map (2015–2026)',
+          text: 'Interactive map & rankings of all 52 Pizza Crawl pizzerias (2015–2026):',
+          url: shareUrl
+        };
+        if (navigator.share) {
+          try {
+            await navigator.share(shareData);
+            return;
+          } catch (err) {}
+        }
+        try {
+          await navigator.clipboard.writeText(shareUrl);
+          const btn = document.getElementById('shareBtn');
+          const orig = btn.innerHTML;
+          btn.innerHTML = '<span>✅</span><span>Copied!</span>';
+          setTimeout(() => { btn.innerHTML = orig; }, 2000);
+        } catch (e) {
+          prompt('Copy this link to send to your friend:', shareUrl);
+        }
+      });
+
+      fetch('https://raw.githubusercontent.com/TallPantsMan/pizza-crawl-map/main/places.json')
+        .then(r => r.json())
+        .then(data => {
+          PLACES = data;
+          render();
+        });
+    }
+    bootApp();
   </script>
 </body>
 </html>

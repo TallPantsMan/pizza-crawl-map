@@ -917,14 +917,7 @@
         listEl.appendChild(item);
       });
 
-      // Add crawl route dashed tour polyline if a specific crawl is selected
-      if (map && routeLayer && crawlVal !== 'ALL' && routeCoords.length > 1) {
-        L.polyline(routeCoords, {
-          color: '#f59e0b',
-          weight: 3.5,
-          opacity: 0.85,
-          dashArray: '6, 8'
-        }).addTo(routeLayer);
+).addTo(routeLayer);
       }
 
       // Add markers in reverse rank order: lowest rank first, highest rank last (topmost in DOM)

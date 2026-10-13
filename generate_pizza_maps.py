@@ -847,107 +847,109 @@ PIZZA_PLACES = [
     }
 ]
 
-desktop_dir = r"c:\Users\alexh\Desktop"
 
-# 1. Generate CSV for Google My Maps
-csv_path = os.path.join(desktop_dir, "Pizza_Crawl_Google_My_Maps.csv")
-with open(csv_path, "w", newline="", encoding="utf-8") as f:
-    writer = csv.writer(f)
-    writer.writerow([
-        "Name", "Best Rank", "Best Score", "Address", "Neighborhood", "Region",
-        "Latitude", "Longitude", "Crawl Appearances", "Latest Year", "Notes", "Google Maps Link"
-    ])
+if __name__ == '__main__':
+    desktop_dir = r"c:\Users\alexh\Desktop"
+
+    # 1. Generate CSV for Google My Maps
+    csv_path = os.path.join(desktop_dir, "Pizza_Crawl_Google_My_Maps.csv")
+    with open(csv_path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "Name", "Best Rank", "Best Score", "Address", "Neighborhood", "Region",
+            "Latitude", "Longitude", "Crawl Appearances", "Latest Year", "Notes", "Google Maps Link"
+        ])
+        for p in PIZZA_PLACES:
+            apps_str = " | ".join([
+                f"{a['year']} {a['crawl']} (Rank #{a['rank']}, Score: {a['score']:.3f})"
+                if a['score'] is not None else f"{a['year']} {a['crawl']} (Inaugural Crawl)"
+                for a in p["appearances"]
+            ])
+            latest_year = max(a["year"] for a in p["appearances"])
+            gmaps_url = f"https://www.google.com/maps/search/?api=1&query={p['name'].replace(' ', '+')}+{p['address'].replace(' ', '+')}"
+            writer.writerow([
+                p["name"],
+                f"#{p['best_rank']}" if p["best_rank"] else "2015 Inaugural",
+                f"{p['best_score']:.3f}" if p["best_score"] else "N/A",
+                p["address"],
+                p["neighborhood"],
+                p["region"],
+                p["lat"],
+                p["lng"],
+                apps_str,
+                latest_year,
+                p["notes"],
+                gmaps_url
+            ])
+
+    # 2. Generate KML for Google My Maps (with color-coded styles and folders by Region or Tier)
+    kml_path = os.path.join(desktop_dir, "Pizza_Crawl_Google_My_Maps.kml")
+    kml_lines = [
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<kml xmlns="http://www.opengis.net/kml/2.2">',
+        '  <Document>',
+        '    <name>Pizza Crawl Winners &amp; Contestants (2015–2026)</name>',
+        '    <description>All 52 pizza places across Crawls I–XII (60 total appearances) with rankings and average scores.</description>',
+        '    <Style id="tier-elite"><IconStyle><color>ff00b5ff</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/ylw-stars.png</href></Icon></IconStyle></Style>',
+        '    <Style id="tier-great"><IconStyle><color>ff34a853</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href></Icon></IconStyle></Style>',
+        '    <Style id="tier-solid"><IconStyle><color>ff4285f4</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href></Icon></IconStyle></Style>',
+        '    <Style id="tier-classic"><IconStyle><color>ffea4335</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/red-circle.png</href></Icon></IconStyle></Style>',
+        '    <Folder>',
+        '      <name>All Pizza Crawl Contestants (Ranked)</name>'
+    ]
+
     for p in PIZZA_PLACES:
-        apps_str = " | ".join([
-            f"{a['year']} {a['crawl']} (Rank #{a['rank']}, Score: {a['score']:.3f})"
-            if a['score'] is not None else f"{a['year']} {a['crawl']} (Inaugural Crawl)"
+        score = p["best_score"]
+        if score and score >= 4.0:
+            style = "#tier-elite"
+        elif score and score >= 3.6:
+            style = "#tier-great"
+        elif score and score >= 3.2:
+            style = "#tier-solid"
+        else:
+            style = "#tier-classic"
+
+        rank_label = f"#{p['best_rank']} " if p["best_rank"] else ""
+        score_label = f" ({p['best_score']:.3f})" if p["best_score"] else " (2015 Crawl)"
+        title = saxutils.escape(f"{rank_label}{p['name']}{score_label}")
+        apps_html = "<br/>".join([
+            saxutils.escape(
+                f"• {a['year']} {a['crawl']}: Rank #{a['rank']} ({a['score']:.3f})"
+                if a['score'] is not None else f"• {a['year']} {a['crawl']} (Inaugural)"
+            )
             for a in p["appearances"]
         ])
-        latest_year = max(a["year"] for a in p["appearances"])
-        gmaps_url = f"https://www.google.com/maps/search/?api=1&query={p['name'].replace(' ', '+')}+{p['address'].replace(' ', '+')}"
-        writer.writerow([
-            p["name"],
-            f"#{p['best_rank']}" if p["best_rank"] else "2015 Inaugural",
-            f"{p['best_score']:.3f}" if p["best_score"] else "N/A",
-            p["address"],
-            p["neighborhood"],
-            p["region"],
-            p["lat"],
-            p["lng"],
-            apps_str,
-            latest_year,
-            p["notes"],
-            gmaps_url
+        best_rank_str = f"#{p['best_rank']}" if p['best_rank'] else "N/A"
+        best_score_str = f"{score:.3f}" if score else "Unscored (2015)"
+        desc = (
+            f"<![CDATA["
+            f"<b>Address:</b> {saxutils.escape(p['address'])}<br/>"
+            f"<b>Neighborhood:</b> {saxutils.escape(p['neighborhood'])} ({saxutils.escape(p['region'])})<br/>"
+            f"<b>Best Score:</b> {best_score_str}<br/>"
+            f"<b>Best Overall Ranking:</b> {best_rank_str}<br/><br/>"
+            f"<b>Crawl History:</b><br/>{apps_html}<br/><br/>"
+            f"<i>{saxutils.escape(p['notes'])}</i>"
+            f"]]>"
+        )
+        kml_lines.extend([
+            '      <Placemark>',
+            f'        <name>{title}</name>',
+            f'        <description>{desc}</description>',
+            f'        <styleUrl>{style}</styleUrl>',
+            '        <Point>',
+            f'          <coordinates>{p["lng"]},{p["lat"]},0</coordinates>',
+            '        </Point>',
+            '      </Placemark>'
         ])
 
-# 2. Generate KML for Google My Maps (with color-coded styles and folders by Region or Tier)
-kml_path = os.path.join(desktop_dir, "Pizza_Crawl_Google_My_Maps.kml")
-kml_lines = [
-    '<?xml version="1.0" encoding="UTF-8"?>',
-    '<kml xmlns="http://www.opengis.net/kml/2.2">',
-    '  <Document>',
-    '    <name>Pizza Crawl Winners &amp; Contestants (2015–2026)</name>',
-    '    <description>All 52 pizza places across Crawls I–XII (60 total appearances) with rankings and average scores.</description>',
-    '    <Style id="tier-elite"><IconStyle><color>ff00b5ff</color><scale>1.1</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/ylw-stars.png</href></Icon></IconStyle></Style>',
-    '    <Style id="tier-great"><IconStyle><color>ff34a853</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/grn-circle.png</href></Icon></IconStyle></Style>',
-    '    <Style id="tier-solid"><IconStyle><color>ff4285f4</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/blu-circle.png</href></Icon></IconStyle></Style>',
-    '    <Style id="tier-classic"><IconStyle><color>ffea4335</color><scale>1.0</scale><Icon><href>http://maps.google.com/mapfiles/kml/paddle/red-circle.png</href></Icon></IconStyle></Style>',
-    '    <Folder>',
-    '      <name>All Pizza Crawl Contestants (Ranked)</name>'
-]
-
-for p in PIZZA_PLACES:
-    score = p["best_score"]
-    if score and score >= 4.0:
-        style = "#tier-elite"
-    elif score and score >= 3.6:
-        style = "#tier-great"
-    elif score and score >= 3.2:
-        style = "#tier-solid"
-    else:
-        style = "#tier-classic"
-
-    rank_label = f"#{p['best_rank']} " if p["best_rank"] else ""
-    score_label = f" ({p['best_score']:.3f})" if p["best_score"] else " (2015 Crawl)"
-    title = saxutils.escape(f"{rank_label}{p['name']}{score_label}")
-    apps_html = "<br/>".join([
-        saxutils.escape(
-            f"• {a['year']} {a['crawl']}: Rank #{a['rank']} ({a['score']:.3f})"
-            if a['score'] is not None else f"• {a['year']} {a['crawl']} (Inaugural)"
-        )
-        for a in p["appearances"]
-    ])
-    best_rank_str = f"#{p['best_rank']}" if p['best_rank'] else "N/A"
-    best_score_str = f"{score:.3f}" if score else "Unscored (2015)"
-    desc = (
-        f"<![CDATA["
-        f"<b>Address:</b> {saxutils.escape(p['address'])}<br/>"
-        f"<b>Neighborhood:</b> {saxutils.escape(p['neighborhood'])} ({saxutils.escape(p['region'])})<br/>"
-        f"<b>Best Score:</b> {best_score_str}<br/>"
-        f"<b>Best Overall Ranking:</b> {best_rank_str}<br/><br/>"
-        f"<b>Crawl History:</b><br/>{apps_html}<br/><br/>"
-        f"<i>{saxutils.escape(p['notes'])}</i>"
-        f"]]>"
-    )
     kml_lines.extend([
-        '      <Placemark>',
-        f'        <name>{title}</name>',
-        f'        <description>{desc}</description>',
-        f'        <styleUrl>{style}</styleUrl>',
-        '        <Point>',
-        f'          <coordinates>{p["lng"]},{p["lat"]},0</coordinates>',
-        '        </Point>',
-        '      </Placemark>'
+        '    </Folder>',
+        '  </Document>',
+        '</kml>'
     ])
 
-kml_lines.extend([
-    '    </Folder>',
-    '  </Document>',
-    '</kml>'
-])
+    with open(kml_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(kml_lines))
 
-with open(kml_path, "w", encoding="utf-8") as f:
-    f.write("\n".join(kml_lines))
-
-print(f"Saved CSV ({len(PIZZA_PLACES)} places) to {csv_path}")
-print(f"Saved KML ({len(PIZZA_PLACES)} places) to {kml_path}")
+    print(f"Saved CSV ({len(PIZZA_PLACES)} places) to {csv_path}")
+    print(f"Saved KML ({len(PIZZA_PLACES)} places) to {kml_path}")

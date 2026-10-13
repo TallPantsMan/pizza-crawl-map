@@ -277,23 +277,65 @@
       padding: 5px 8px; border-radius: 0 5px 5px 0; margin: 7px 0 9px 0;
       line-height: 1.35;
     }
+    /* QUICK DIRECTIONS PILL ON COMPACT CARD */
+    .card-quick-gmaps {
+      background: #1a73e8; color: #ffffff !important;
+      border: 1px solid #60a5fa;
+      font-size: 11px; font-weight: 700;
+      padding: 3px 8px; border-radius: 6px;
+      text-decoration: none; display: inline-flex;
+      align-items: center; gap: 3px; flex-shrink: 0;
+      letter-spacing: 0.01em; box-shadow: 0 2px 6px rgba(26, 115, 232, 0.35);
+      transition: all 0.15s ease;
+      font-family: 'Poppins', sans-serif;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+    .card-quick-gmaps:hover {
+      background: #1557b0; border-color: #93c5fd;
+      box-shadow: 0 3px 8px rgba(26, 115, 232, 0.55);
+      transform: translateY(-1px);
+    }
+
+    /* EXPANDED CARD DRAWER ACTIONS (PROMINENT & ULTRA-READABLE) */
     .drawer-actions {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;
+      display: flex; flex-direction: column; gap: 7px; margin-top: 10px;
     }
     .drawer-btn {
-      padding: 6px 10px; border-radius: var(--radius-sm); font-size: 11.5px; font-weight: 600;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
-      text-decoration: none; cursor: pointer; border: 1px solid transparent;
+      width: 100%; box-sizing: border-box;
+      padding: 9.5px 14px; border-radius: 9px;
+      display: flex; align-items: center; justify-content: center; gap: 7px;
+      text-decoration: none; cursor: pointer; border: 1.5px solid transparent;
       font-family: 'Poppins', sans-serif; transition: all 0.15s ease;
+      letter-spacing: 0.01em; line-height: 1.25;
     }
     .drawer-btn-gmaps {
-      background: #2563eb; color: #ffffff;
+      background: #1a73e8 !important; /* Official Google Maps Blue */
+      color: #ffffff !important;
+      font-size: 13.5px !important;
+      font-weight: 700 !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 3px 12px rgba(26, 115, 232, 0.45) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
     }
-    .drawer-btn-gmaps:hover { background: #1d4ed8; }
+    .drawer-btn-gmaps:hover {
+      background: #1557b0 !important;
+      border-color: #93c5fd !important;
+      box-shadow: 0 4px 16px rgba(26, 115, 232, 0.65) !important;
+    }
     .drawer-btn-share {
-      background: #1e2b42; color: #cbd5e1; border-color: rgba(255,255,255,0.1);
+      background: #141f33;
+      color: #cbd5e1;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 6.5px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
     }
-    .drawer-btn-share:hover { background: #263652; color: #ffffff; }
+    .drawer-btn-share:hover {
+      background: #1c2b45;
+      color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
 
     /* MAP AREA */
     .map-wrap { flex: 1; position: relative; width: 100%; height: 100%; }
@@ -392,16 +434,27 @@
       line-height: 1.35; border-left: 2.5px solid var(--amber);
     }
     .popup-specialty-line strong { color: var(--amber-light); }
-    .popup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .popup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
     .popup-btn {
-      padding: 6px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
+      padding: 7px 10px; border-radius: 7px; font-size: 12px; font-weight: 700;
       text-align: center; text-decoration: none; cursor: pointer; display: flex;
       align-items: center; justify-content: center; gap: 4px; font-family: 'Poppins', sans-serif;
-      border: 1px solid transparent;
+      border: 1.5px solid transparent; transition: all 0.15s ease;
     }
-    .popup-btn-gmaps { background: #2563eb; color: #fff; }
-    .popup-btn-gmaps:hover { background: #1d4ed8; }
-    .popup-btn-share { background: #1c2b45; color: #cbd5e1; border-color: rgba(255,255,255,0.1); }
+    .popup-btn-gmaps {
+      background: #1a73e8 !important; color: #ffffff !important;
+      border-color: #60a5fa !important;
+      font-size: 12px !important; font-weight: 700 !important;
+      box-shadow: 0 2px 8px rgba(26, 115, 232, 0.4) !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    .popup-btn-gmaps:hover {
+      background: #1557b0 !important; border-color: #93c5fd !important;
+    }
+    .popup-btn-share {
+      background: #1c2b45; color: #cbd5e1; border-color: rgba(255,255,255,0.12);
+      font-size: 11.5px; font-weight: 600;
+    }
     .popup-btn-share:hover { background: #263652; color: #fff; }
 
 /* TOAST */
@@ -549,6 +602,18 @@
         navigator.clipboard.writeText(u.toString()).then(() => showToast('Pizzeria link copied!'));
       } else {
         showToast('Link copied!');
+      }
+    };
+
+    window.__openSpotDrawer = function(pid) {
+      if (window.innerWidth < 768) {
+        setMobileView(true);
+      }
+      handlePlaceSelect(pid, false);
+      const card = document.querySelector(`.place-item[data-id="${pid}"]`);
+      if (card) {
+        card.classList.add('expanded');
+        setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'center' }), 120);
       }
     };
 
@@ -740,7 +805,8 @@
 
           const marker = L.marker(latLng, { icon, zIndexOffset: initialZOffset }).bindPopup(popupHtml, {
             maxWidth: 310,
-            autoPanPaddingTopLeft: [30, 130], autoPanPaddingBottomRight: [30, 30]
+            autoPan: false,
+            offset: [0, -10]
           });
 
           marker.on('mouseover', () => marker.setZIndexOffset(baseRankZ + 300000));
@@ -748,7 +814,8 @@
             if (selectedPlaceId !== p.id) marker.setZIndexOffset(baseRankZ);
           });
 
-          marker.on('click', () => {
+          marker.on('click', (e) => {
+            if (e && e.originalEvent) L.DomEvent.stopPropagation(e);
             handlePlaceSelect(p.id, false);
           });
 
@@ -791,6 +858,9 @@
             </div>
             <div class="card-info-right">
               <div class="card-score-pill">⭐ ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</div>
+              <a href="${gmapsUrl}" target="_blank" rel="noopener" class="card-quick-gmaps" onclick="event.stopPropagation()" title="Get Directions in Google Maps">
+                🧭 Directions ↗
+              </a>
               <span class="expand-chevron">▾</span>
             </div>
           </div>
@@ -812,10 +882,10 @@
             ${p.notes ? `<div class="drawer-quote">“${p.notes}”</div>` : ''}
             <div class="drawer-actions">
               <a href="${gmapsUrl}" target="_blank" rel="noopener" class="drawer-btn drawer-btn-gmaps" onclick="event.stopPropagation()">
-                🧭 Directions ↗
+                🧭 Get Directions (Google Maps) ↗
               </a>
               <button class="drawer-btn drawer-btn-share" onclick="event.stopPropagation(); window.__copySpotLink('${p.id}', this)">
-                🔗 Share Spot
+                🔗 Share Spot Link
               </button>
             </div>
           </div>
@@ -877,15 +947,29 @@
         const activeMarkerObj = markersById[pid];
         activeMarkerObj.marker.setZIndexOffset(activeMarkerObj.baseRankZ + 500000);
 
-        if (window.innerWidth < 768 && fromCardClick) {
-          // On mobile, if card clicked, switch to map view and show popup
+        const isMobile = (window.innerWidth < 768);
+        if (isMobile && fromCardClick) {
           setMobileView(false);
+          map.invalidateSize();
         }
 
+        // Calculate optical target center:
+        // Offsetting latitude northward by ~0.0018deg (~125px at zoom 16) places BOTH the popup and marker pin
+        // dead-center in the viewport with generous, balanced margins.
+        const latOffset = isMobile ? 0.0016 : 0.0018;
+        const targetLat = activeMarkerObj.latLng[0] + latOffset;
+        const targetLng = activeMarkerObj.latLng[1];
+
+        // Smooth gliding camera transition without conflicting autoPan jerks
+        map.flyTo([targetLat, targetLng], 16, {
+          animate: true,
+          duration: 0.5,
+          easeLinearity: 0.25
+        });
+
         setTimeout(() => {
-          map.setView(activeMarkerObj.latLng, 16, { animate: true });
           activeMarkerObj.marker.openPopup();
-        }, 100);
+        }, 120);
       }
     }
 
@@ -997,11 +1081,21 @@
         activeQuickChip = 'ALL';
         selectedPlaceId = null;
         render();
-        if (map) map.setView([40.735, -73.965], 11, { animate: true });
+        if (map) {
+          map.closePopup();
+          map.flyTo([40.735, -73.965], 11, { animate: true, duration: 0.6 });
+        }
       });
 
       document.getElementById('recenterBtn').addEventListener('click', () => {
-        if (map) map.setView([40.735, -73.965], 11, { animate: true });
+        if (!map) return;
+        map.closePopup();
+        const isFilterActive = (activeQuickChip !== 'ALL' || document.getElementById('crawlFilter').value !== 'ALL' || document.getElementById('regionFilter').value !== 'ALL' || !!document.getElementById('searchInput').value);
+        if (isFilterActive && currentBounds && currentBounds.length > 0) {
+          map.fitBounds(currentBounds, { padding: [50, 50], maxZoom: 15, animate: true });
+        } else {
+          map.flyTo([40.735, -73.965], 11, { animate: true, duration: 0.6 });
+        }
       });
 
       document.getElementById('locateBtn').addEventListener('click', () => {

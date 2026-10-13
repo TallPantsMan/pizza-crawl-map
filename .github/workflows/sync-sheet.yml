@@ -13,6 +13,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: sync-sheet
+  cancel-in-progress: true
+
 jobs:
   sync-sheet:
     runs-on: ubuntu-latest

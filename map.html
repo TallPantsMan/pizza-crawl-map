@@ -13,10 +13,11 @@
       --bg-card: #151f32;
       --bg-card-hover: #1c2942;
       --border: #233149;
-      --border-subtle: rgba(255, 255, 255, 0.08);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --text-main: #ffffff;
+      --text-bright: #f8fafc;
+      --text-sub: #e2e8f0;
+      --text-muted: #cbd5e1;
       --amber: #f59e0b;
       --amber-light: #fbbf24;
       --emerald: #10b981;
@@ -39,117 +40,118 @@
     .top-header {
       background: linear-gradient(180deg, #111a2e 0%, #0c1322 100%);
       border-bottom: 1px solid var(--border);
-      padding: 9px 14px 7px 14px;
+      padding: 10px 16px 8px 16px;
       flex-shrink: 0;
       z-index: 40;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
     }
     .header-row {
       display: flex; align-items: center; justify-content: space-between; gap: 10px;
     }
     .brand-box {
-      display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1;
+      display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;
     }
     .logo-badge {
-      width: 36px; height: 36px; border-radius: 10px;
-      background: linear-gradient(135deg, rgba(245,158,11,0.22), rgba(234,88,12,0.14));
-      border: 1px solid rgba(245,158,11,0.45);
+      width: 38px; height: 38px; border-radius: 10px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(234,88,12,0.18));
+      border: 1.5px solid rgba(245,158,11,0.5);
       display: flex; align-items: center; justify-content: center;
-      font-size: 19px; flex-shrink: 0;
-      box-shadow: 0 2px 8px rgba(245,158,11,0.12);
+      font-size: 20px; flex-shrink: 0;
+      box-shadow: 0 2px 10px rgba(245,158,11,0.2);
     }
     .brand-title-wrap { min-width: 0; flex: 1; }
     .brand-title {
-      font-size: 16px; font-weight: 800; color: #ffffff; margin: 0;
-      letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 17px; font-weight: 800; color: #ffffff; margin: 0;
+      letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .brand-sub {
-      font-size: 11px; color: var(--text-muted); margin: 1px 0 0 0;
+      font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 2px 0 0 0;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .actions-row {
-      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 8px; flex-shrink: 0;
     }
     .btn {
-      border: 1px solid transparent; border-radius: 8px; padding: 6px 11px;
-      font-size: 12px; font-weight: 700; cursor: pointer;
+      border: 1px solid transparent; border-radius: 8px; padding: 7px 13px;
+      font-size: 12.5px; font-weight: 700; cursor: pointer;
       display: inline-flex; align-items: center; justify-content: center; gap: 5px;
       transition: all 0.15s ease; text-decoration: none; white-space: nowrap;
       line-height: 1.1;
     }
-    .btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
     .btn:active { transform: translateY(0); }
     .btn-sheet {
-      background: #192438; color: #e2e8f0; border-color: #2e3f5c;
+      background: #1e293b; color: #ffffff; border-color: #334155;
     }
     .btn-share {
       background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-      color: #090d16; border-color: #fbbf24;
-      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+      color: #000000; border-color: #fbbf24;
+      box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
     }
 
     /* CONTROLS ROW: Search & Filters */
     .controls-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 7px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;
     }
     .search-wrap {
       grid-column: span 2; position: relative; display: flex; align-items: center; width: 100%;
     }
     .search-icon {
-      position: absolute; left: 10px; font-size: 12px; color: var(--text-muted); pointer-events: none;
+      position: absolute; left: 11px; font-size: 13px; color: #94a3b8; pointer-events: none;
     }
     .search-input {
-      width: 100% !important; padding: 6.5px 28px 6.5px 28px;
-      background: #141c2c; border: 1px solid #233149; color: #f8fafc;
-      font-size: 12px; font-weight: 500; border-radius: 8px; outline: none;
+      width: 100% !important; padding: 7.5px 32px 7.5px 32px;
+      background: #141c2c; border: 1.5px solid #334155; color: #ffffff;
+      font-size: 13px; font-weight: 500; border-radius: 8px; outline: none;
       transition: border-color 0.15s;
     }
+    .search-input::placeholder { color: #94a3b8; }
     .search-input:focus { border-color: var(--amber); }
     .search-clear {
-      position: absolute; right: 6px; background: #26334d; color: #cbd5e1;
-      border: none; border-radius: 999px; width: 18px; height: 18px;
-      font-size: 10px; cursor: pointer; display: none; align-items: center; justify-content: center;
+      position: absolute; right: 8px; background: #334155; color: #ffffff;
+      border: none; border-radius: 999px; width: 20px; height: 20px;
+      font-size: 12px; cursor: pointer; display: none; align-items: center; justify-content: center;
     }
     .filter-control {
-      background: #141c2c; border: 1px solid #233149; color: #f8fafc;
-      font-size: 12px; font-weight: 600; border-radius: 8px; padding: 6.5px 8px;
+      background: #141c2c; border: 1.5px solid #334155; color: #ffffff;
+      font-size: 12.5px; font-weight: 600; border-radius: 8px; padding: 7.5px 9px;
       outline: none; width: 100%; transition: border-color 0.15s;
     }
     .filter-control:focus { border-color: var(--amber); }
 
     /* SINGLE-ROW CURATED CHIPS */
     .chips-bar {
-      display: flex; align-items: center; gap: 5px; margin-top: 7px;
-      overflow-x: auto; padding-bottom: 1px; scrollbar-width: none;
+      display: flex; align-items: center; gap: 6px; margin-top: 8px;
+      overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
     }
     .chips-bar::-webkit-scrollbar { display: none; }
     .chip {
-      background: #131b2b; border: 1px solid #222e44; color: #cbd5e1;
-      font-size: 11.5px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
-      cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+      background: #1e293b; border: 1.5px solid #334155; color: #e2e8f0;
+      font-size: 12px; font-weight: 700; padding: 4.5px 12px; border-radius: 999px;
+      cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;
       transition: all 0.14s ease; flex-shrink: 0;
     }
-    .chip:hover { background: #1c273d; border-color: #3b4f73; color: #fff; }
+    .chip:hover { background: #334155; border-color: #475569; color: #ffffff; }
     .chip.active {
-      background: rgba(245, 158, 11, 0.18); border-color: var(--amber); color: var(--amber-light);
-      box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+      background: rgba(245, 158, 11, 0.25); border-color: var(--amber); color: var(--amber-light);
+      box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
     }
 
     @media (min-width: 768px) {
-      .brand-title { font-size: 17px; }
+      .brand-title { font-size: 18px; }
       .controls-row {
-        display: flex; align-items: center; gap: 8px;
+        display: flex; align-items: center; gap: 10px;
       }
-      .filter-control { width: auto; min-width: 185px; }
-      .search-wrap { flex: 1; max-width: 320px; }
+      .filter-control { width: auto; min-width: 195px; }
+      .search-wrap { flex: 1; max-width: 340px; }
     }
     @media (max-width: 767px) {
-      .top-header { padding: 7px 10px 6px 10px; }
-      .logo-badge { width: 30px; height: 30px; font-size: 16px; }
-      .brand-title { font-size: 14px; }
-      .brand-sub { font-size: 10px; }
-      .btn { padding: 5px 8px; font-size: 11px; }
-      .filter-control { font-size: 11px; padding: 5.5px 6px; }
+      .top-header { padding: 8px 10px 7px 10px; }
+      .logo-badge { width: 32px; height: 32px; font-size: 17px; }
+      .brand-title { font-size: 15px; }
+      .brand-sub { font-size: 11px; }
+      .btn { padding: 6px 9px; font-size: 11.5px; }
+      .filter-control { font-size: 11.5px; padding: 6.5px 7px; }
     }
 
     /* MAIN SPLIT AREA */
@@ -157,7 +159,7 @@
       display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; height: 100%;
     }
     .sidebar {
-      width: 420px; background: var(--bg-panel); border-right: 1px solid var(--border);
+      width: 430px; background: var(--bg-panel); border-right: 1px solid var(--border);
       display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 25;
     }
     @media (max-width: 767px) {
@@ -169,48 +171,51 @@
 
     /* SIDEBAR HEADER & CRAWL BANNER */
     .sidebar-header {
-      padding: 7px 14px; background: #0c1221; border-bottom: 1px solid var(--border);
+      padding: 9px 14px; background: #0c1221; border-bottom: 1px solid var(--border);
       display: flex; align-items: center; justify-content: space-between; gap: 6px;
-      font-size: 11px; color: var(--text-muted); flex-shrink: 0;
+      font-size: 12px; font-weight: 700; color: #cbd5e1; flex-shrink: 0;
+    }
+    .legend-boroughs {
+      display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700;
     }
     .crawl-banner {
-      display: none; margin: 9px 11px 2px 11px; padding: 10px 12px;
-      background: linear-gradient(135deg, rgba(245,158,11,0.12) 0%, rgba(26,36,54,0.9) 100%);
-      border: 1px solid rgba(245,158,11,0.4); border-radius: 11px; flex-shrink: 0;
+      display: none; margin: 9px 11px 3px 11px; padding: 11px 13px;
+      background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(26,36,54,0.95) 100%);
+      border: 1.5px solid rgba(245,158,11,0.5); border-radius: 12px; flex-shrink: 0;
     }
     .crawl-banner.visible { display: block; }
     .crawl-banner-top {
       display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
     .crawl-banner-title {
-      font-size: 13px; font-weight: 800; color: #fbbf24; margin: 0;
+      font-size: 14px; font-weight: 800; color: #fbbf24; margin: 0;
     }
     .crawl-banner-avg {
-      font-size: 11px; font-weight: 700; color: #e2e8f0;
-      background: rgba(15,23,42,0.85); padding: 2px 7px; border-radius: 6px;
-      border: 1px solid rgba(245,158,11,0.3);
+      font-size: 11.5px; font-weight: 800; color: #ffffff;
+      background: rgba(15,23,42,0.9); padding: 2.5px 8px; border-radius: 6px;
+      border: 1px solid rgba(245,158,11,0.4);
     }
     .crawl-banner-winner {
-      font-size: 11.5px; color: #f8fafc; margin: 3px 0 2px 0; font-weight: 600;
+      font-size: 12.5px; color: #ffffff; margin: 4px 0 3px 0; font-weight: 700;
     }
     .crawl-banner-desc {
-      font-size: 10.5px; color: #cbd5e1; margin: 0; line-height: 1.35;
+      font-size: 11.5px; color: #e2e8f0; margin: 0; line-height: 1.4;
     }
 
-    /* PLACES LIST (CUSTOM DARK SCROLLBAR) */
+    /* PLACES LIST (CUSTOM SCROLLBAR) */
     .places-list {
-      flex: 1; overflow-y: auto; padding: 8px 10px 90px 10px;
+      flex: 1; overflow-y: auto; padding: 9px 11px 90px 11px;
     }
-    .places-list::-webkit-scrollbar { width: 5px; }
+    .places-list::-webkit-scrollbar { width: 6px; }
     .places-list::-webkit-scrollbar-track { background: #0a0f1d; }
-    .places-list::-webkit-scrollbar-thumb { background: #233149; border-radius: 999px; }
-    .places-list::-webkit-scrollbar-thumb:hover { background: #3b4f73; }
+    .places-list::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+    .places-list::-webkit-scrollbar-thumb:hover { background: #475569; }
 
-    /* REDESIGNED CARD: Spacious, 2 Photos, Editorial Feel */
+    /* REDESIGNED CARD: Spacious, 2 Photos, High Contrast Editorial */
     .place-item {
-      margin-bottom: 11px;
+      margin-bottom: 12px;
       background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
+      border: 1.5px solid #283750;
       border-radius: 13px;
       overflow: hidden;
       cursor: pointer;
@@ -219,14 +224,14 @@
     }
     .place-item:hover {
       background: var(--bg-card-hover);
-      border-color: rgba(245, 158, 11, 0.45);
+      border-color: rgba(245, 158, 11, 0.6);
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     }
     .place-item.selected {
-      background: #1a253a;
+      background: #1c273e;
       border-color: var(--amber);
-      box-shadow: 0 0 0 1px rgba(245,158,11,0.4), 0 8px 25px rgba(0,0,0,0.45);
+      box-shadow: 0 0 0 1.5px var(--amber), 0 8px 25px rgba(0,0,0,0.5);
     }
 
     /* CARD PHOTOS GRID (2 IMAGES SIDE-BY-SIDE) */
@@ -234,7 +239,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 5px;
-      height: 115px;
+      height: 120px;
       background: #090e1a;
       padding: 6px 6px 0 6px;
       position: relative;
@@ -260,76 +265,105 @@
     /* FLOATING PHOTO BADGES */
     .rank-pill-badge {
       position: absolute;
-      top: 6px; left: 6px;
-      font-size: 11px; font-weight: 800;
-      color: #fff;
-      padding: 2px 7px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-      border: 1px solid rgba(255,255,255,0.25);
-      backdrop-filter: blur(4px);
+      top: 7px; left: 7px;
+      font-size: 12px; font-weight: 900;
+      color: #ffffff;
+      background: #090d16;
+      border: 1.5px solid #fbbf24;
+      padding: 2.5px 8px;
+      border-radius: 7px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      text-shadow: 0 1px 2px #000;
     }
     .winner-banner-badge {
       position: absolute;
-      top: 6px; right: 6px;
-      font-size: 10.5px; font-weight: 800;
-      background: rgba(245, 158, 11, 0.92);
-      color: #0b0f19;
-      padding: 2px 6px;
-      border-radius: 6px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      white-space: nowrap;
+      top: 7px; right: 7px;
+      font-size: 11px; font-weight: 900;
+      background: #fbbf24;
+      color: #000000;
+      padding: 2.5px 8px;
+      border-radius: 7px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      border: 1px solid #d97706;
     }
     .closed-badge {
       position: absolute;
-      top: 6px; right: 6px;
-      font-size: 10px; font-weight: 800;
-      background: rgba(244, 63, 94, 0.9);
-      color: #fff;
-      padding: 2px 6px;
-      border-radius: 6px;
+      top: 7px; right: 7px;
+      font-size: 11px; font-weight: 900;
+      background: #f43f5e;
+      color: #ffffff;
+      padding: 2.5px 8px;
+      border-radius: 7px;
     }
 
     /* CARD CONTENT */
     .card-content {
-      padding: 9px 12px 11px 12px;
+      padding: 10px 13px 12px 13px;
     }
     .card-header-row {
       display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
     }
     .card-title {
-      font-size: 15.5px; font-weight: 800; color: #ffffff; margin: 0;
+      font-size: 16.5px; font-weight: 800; color: #ffffff; margin: 0;
       line-height: 1.25; flex: 1; min-width: 0;
     }
     .card-score-pill {
-      font-size: 12.5px; font-weight: 800; color: #fbbf24;
-      background: rgba(245, 158, 11, 0.12);
-      border: 1px solid rgba(245, 158, 11, 0.35);
-      padding: 2px 7px; border-radius: 6px;
+      font-size: 13.5px; font-weight: 800; color: #fbbf24;
+      background: rgba(245, 158, 11, 0.18);
+      border: 1.5px solid rgba(245, 158, 11, 0.5);
+      padding: 2.5px 8px; border-radius: 6px;
       font-variant-numeric: tabular-nums;
       flex-shrink: 0;
     }
     .card-meta-row {
-      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 4px;
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 5px;
     }
     .card-location {
-      font-size: 11.5px; color: var(--text-muted);
+      font-size: 13px; font-weight: 600; color: #f1f5f9;
     }
     .card-style-tag {
-      font-size: 10.5px; font-weight: 600; color: #93c5fd;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.25);
-      padding: 1px 6px; border-radius: 4px;
+      font-size: 11.5px; font-weight: 700; color: #bfdbfe;
+      background: #1e3a8a;
+      border: 1px solid #3b82f6;
+      padding: 2px 7px; border-radius: 4px;
     }
     .card-specialty {
-      font-size: 11.5px; color: #cbd5e1; margin: 5px 0 0 0;
+      font-size: 12.5px; font-weight: 500; color: #ffffff; margin: 7px 0 0 0;
+      background: rgba(15, 23, 42, 0.85);
+      border-left: 3.5px solid #f59e0b;
+      padding: 5px 9px;
+      border-radius: 0 6px 6px 0;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      line-height: 1.3;
+      line-height: 1.35;
+    }
+    .card-specialty strong {
+      color: #fbbf24; font-weight: 700;
     }
 
     /* MAP AREA */
     .map-wrap { flex: 1; position: relative; width: 100%; height: 100%; }
-    #map { width: 100%; height: 100%; z-index: 10; background: #080d19; }
+    #map { width: 100%; height: 100%; z-index: 10; background: #e5e7eb; }
+
+    /* MAP LAYER SWITCHER */
+    .map-layer-switcher {
+      position: absolute; top: 12px; left: 12px; z-index: 20;
+      display: flex; gap: 4px; background: rgba(15, 23, 42, 0.94);
+      padding: 4px; border-radius: 999px; border: 1.5px solid #334155;
+      backdrop-filter: blur(8px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+    }
+    .layer-pill {
+      background: transparent; border: none; color: #cbd5e1;
+      font-size: 11.5px; font-weight: 700; padding: 5px 11px;
+      border-radius: 999px; cursor: pointer; transition: all 0.15s ease;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .layer-pill:hover {
+      color: #ffffff; background: rgba(255, 255, 255, 0.12);
+    }
+    .layer-pill.active {
+      background: #f59e0b; color: #000000; box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+      font-weight: 800;
+    }
 
     /* FLOATING MAP TOOLS */
     .map-floating-tools {
@@ -340,11 +374,11 @@
       .map-floating-tools { bottom: 88px; }
     }
     .map-tool-btn {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
-      border: 1px solid rgba(255, 255, 255, 0.12); color: #f8fafc;
+      width: 40px; height: 40px; border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(8px);
+      border: 1.5px solid #334155; color: #ffffff;
       display: flex; align-items: center; justify-content: center;
-      cursor: pointer; font-size: 16px; box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+      cursor: pointer; font-size: 17px; box-shadow: 0 4px 14px rgba(0,0,0,0.4);
       transition: all 0.15s ease;
     }
     .map-tool-btn:hover { background: #1e293b; color: var(--amber); transform: scale(1.05); }
@@ -353,29 +387,29 @@
     .mobile-nav-toggle {
       position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
       z-index: 35; display: none;
-      background: #0f172a; border: 1.5px solid var(--amber);
-      color: #fff; padding: 10px 20px; border-radius: 999px;
-      font-size: 13px; font-weight: 800; cursor: pointer;
-      box-shadow: 0 6px 24px rgba(0,0,0,0.65), 0 0 15px rgba(245, 158, 11, 0.35);
+      background: #0f172a; border: 2px solid var(--amber);
+      color: #ffffff; padding: 10px 22px; border-radius: 999px;
+      font-size: 13.5px; font-weight: 800; cursor: pointer;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.7), 0 0 15px rgba(245, 158, 11, 0.4);
       align-items: center; gap: 8px;
     }
     @media (max-width: 767px) {
       .mobile-nav-toggle { display: inline-flex; }
     }
 
-    /* LEAFLET POPUP STYLES: Rich, Complete, 2 Photos */
+    /* LEAFLET POPUP STYLES: Rich, Complete, 2 Photos, Razor-Sharp Text */
     .leaflet-popup-content-wrapper {
       background: #0f172a !important;
-      color: #f8fafc !important;
-      border: 1px solid #283750 !important;
+      color: #ffffff !important;
+      border: 1.5px solid #334155 !important;
       border-radius: 14px !important;
       padding: 0 !important;
       overflow: hidden !important;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.6) !important;
+      box-shadow: 0 12px 36px rgba(0,0,0,0.7) !important;
     }
     .leaflet-popup-content {
       margin: 0 !important;
-      width: 320px !important;
+      width: 325px !important;
       max-width: 88vw !important;
       line-height: 1.4 !important;
     }
@@ -384,88 +418,96 @@
     }
     .leaflet-container a.leaflet-popup-close-button {
       top: 8px !important; right: 8px !important;
-      color: #fff !important; width: 26px !important; height: 26px !important;
-      background: rgba(0,0,0,0.6) !important; border-radius: 999px !important;
+      color: #fff !important; width: 28px !important; height: 28px !important;
+      background: rgba(0,0,0,0.7) !important; border-radius: 999px !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
-      font-size: 16px !important; border: 1px solid rgba(255,255,255,0.2) !important;
+      font-size: 17px !important; border: 1px solid rgba(255,255,255,0.3) !important;
       z-index: 10 !important;
     }
 
     .popup-photos-strip {
       display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-      height: 130px; background: #000; overflow: hidden;
+      height: 135px; background: #000; overflow: hidden;
     }
     .popup-photos-strip img {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
     .popup-body {
-      padding: 12px 14px;
+      padding: 13px 15px 15px 15px;
     }
     .popup-top-row {
       display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
     }
     .popup-title {
-      font-size: 16px; font-weight: 800; color: #fff; margin: 0; line-height: 1.25;
+      font-size: 17.5px; font-weight: 800; color: #ffffff; margin: 0; line-height: 1.25;
     }
     .popup-score-badge {
-      font-size: 13px; font-weight: 800; color: #fbbf24;
-      background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.4);
-      padding: 2px 7px; border-radius: 6px; flex-shrink: 0;
+      font-size: 14px; font-weight: 800; color: #fbbf24;
+      background: rgba(245,158,11,0.2); border: 1.5px solid #f59e0b;
+      padding: 3px 8px; border-radius: 6px; flex-shrink: 0;
     }
     .popup-addr {
-      font-size: 11.5px; color: var(--text-muted); margin: 3px 0 0 0;
+      font-size: 13px; font-weight: 600; color: #e2e8f0; margin: 5px 0 0 0;
     }
     .popup-tags-row {
-      display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-top: 6px;
+      display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 7px;
     }
     .popup-tag {
-      font-size: 10.5px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+      font-size: 11.5px; font-weight: 700; padding: 2.5px 8px; border-radius: 5px;
     }
     .popup-style-tag {
-      color: #93c5fd; background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.3);
+      color: #bfdbfe; background: #1e3a8a; border: 1px solid #3b82f6;
     }
     .popup-specialty-box {
-      margin-top: 8px; font-size: 11.5px; color: #f1f5f9;
-      background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(51, 65, 85, 0.5);
-      padding: 6px 9px; border-radius: 6px;
+      margin-top: 9px; font-size: 13px; color: #ffffff;
+      background: #1e293b; border: 1px solid #334155;
+      border-left: 3.5px solid #f59e0b;
+      padding: 7px 10px; border-radius: 0 6px 6px 0;
+      line-height: 1.4;
+    }
+    .popup-specialty-box strong {
+      color: #fbbf24; font-weight: 700;
     }
     .popup-crawls-title {
-      font-size: 11px; font-weight: 700; color: var(--amber-light);
-      margin-top: 10px; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em;
+      font-size: 12px; font-weight: 800; color: #fbbf24;
+      margin-top: 12px; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .popup-crawl-row {
       display: flex; align-items: center; justify-content: space-between;
-      font-size: 11.5px; padding: 3px 0; border-bottom: 1px solid rgba(51,65,85,0.4);
+      font-size: 13px; font-weight: 600; padding: 4px 0; border-bottom: 1px solid #334155;
+      color: #ffffff;
     }
     .popup-crawl-row:last-child { border-bottom: none; }
     .popup-quote {
-      font-size: 11px; font-style: italic; color: #cbd5e1;
-      margin: 8px 0 0 0; line-height: 1.35;
-      border-left: 2px solid var(--amber); padding-left: 8px;
+      font-size: 12.5px; font-style: italic; color: #f8fafc;
+      margin: 10px 0 0 0; line-height: 1.4;
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 3px solid #f59e0b; padding: 7px 11px;
+      border-radius: 0 6px 6px 0;
     }
     .popup-actions-row {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 11px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 13px;
     }
     .popup-btn {
-      padding: 7px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 700;
+      padding: 8px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 700;
       text-align: center; text-decoration: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center; gap: 4px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
       transition: all 0.15s; border: 1px solid transparent;
     }
     .popup-btn-gmaps {
-      background: #2563eb; color: #fff; border-color: #3b82f6;
+      background: #2563eb; color: #ffffff; border-color: #3b82f6;
     }
     .popup-btn-gmaps:hover { background: #1d4ed8; }
     .popup-btn-share {
-      background: #1e293b; color: #e2e8f0; border-color: #334155;
+      background: #334155; color: #ffffff; border-color: #475569;
     }
-    .popup-btn-share:hover { background: #334155; color: #fff; }
+    .popup-btn-share:hover { background: #475569; }
 
     /* TOAST NOTIFICATION */
     .toast {
       position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(40px);
-      background: #10b981; color: #042f2e; font-weight: 800; font-size: 13px;
-      padding: 9px 18px; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,0.45);
+      background: #10b981; color: #000000; font-weight: 800; font-size: 13.5px;
+      padding: 9px 20px; border-radius: 999px; box-shadow: 0 6px 20px rgba(0,0,0,0.5);
       z-index: 1000; opacity: 0; pointer-events: none; transition: all 0.25s ease;
     }
     .toast.show {
@@ -515,21 +557,21 @@
           <option value="2018">Crawl IV: Coal Ovens (2018)</option>
           <option value="2017">Crawl III: Manhattan (2017)</option>
           <option value="2016">Crawl II: Brooklyn (2016)</option>
-          <option value="2015">Crawl I: Inaugural (2015)</option>
+          <option value="2015">Crawl I: Manhattan (2015)</option>
         </select>
         <select id="regionFilter" class="filter-control">
           <option value="ALL">All Boroughs & Regions</option>
-          <option value="Manhattan">Manhattan</option>
-          <option value="Brooklyn">Brooklyn</option>
-          <option value="The Bronx">The Bronx</option>
-          <option value="Queens">Queens</option>
-          <option value="Staten Island">Staten Island</option>
-          <option value="Westchester">Westchester</option>
-          <option value="Connecticut">Connecticut</option>
+          <option value="Manhattan">Manhattan (23)</option>
+          <option value="Brooklyn">Brooklyn (14)</option>
+          <option value="Staten Island">Staten Island (5)</option>
+          <option value="The Bronx">The Bronx (4)</option>
+          <option value="Westchester">Westchester (3)</option>
+          <option value="Connecticut">New Haven, CT (2)</option>
+          <option value="Queens">Queens (1)</option>
         </select>
       </div>
 
-      <!-- SINGLE ROW FILTER CHIPS -->
+      <!-- HIGH-VALUE CURATED CHIPS -->
       <div class="chips-bar">
         <button class="chip active" data-chip="ALL">All (52)</button>
         <button class="chip" data-chip="WINNERS">🏆 Champions (12)</button>
@@ -538,49 +580,59 @@
       </div>
     </header>
 
-    <!-- MAIN APP BODY -->
+    <!-- MAIN SPLIT -->
     <div class="main-area">
       <!-- SIDEBAR -->
       <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
           <span id="placesCount">Showing 52 pizzerias</span>
-          <span class="legend-dots">
-            <span style="color:#fbbf24">●</span> MHTN
-            <span style="color:#10b981;margin-left:4px">●</span> BK
-            <span style="color:#f43f5e;margin-left:4px">●</span> BX
-            <span style="color:#3b82f6;margin-left:4px">●</span> QNS
-            <span style="color:#8b5cf6;margin-left:4px">●</span> SI
-          </span>
+          <div class="legend-boroughs">
+            <span style="color:#fbbf24">● MHTN</span>
+            <span style="color:#10b981">● BK</span>
+            <span style="color:#f43f5e">● BX</span>
+            <span style="color:#3b82f6">● QNS</span>
+            <span style="color:#a855f7">● SI</span>
+          </div>
         </div>
 
+        <!-- CRAWL BANNER -->
         <div class="crawl-banner" id="crawlBanner">
           <div class="crawl-banner-top">
-            <h3 class="crawl-banner-title" id="crawlBannerTitle">Crawl XII</h3>
-            <span class="crawl-banner-avg" id="crawlBannerAvg">Avg: 3.953</span>
+            <h3 class="crawl-banner-title" id="crawlBannerTitle">Crawl XI: Westchester</h3>
+            <span class="crawl-banner-avg" id="crawlBannerAvg">Avg: 3.476</span>
           </div>
-          <div class="crawl-banner-winner" id="crawlBannerWinner">🏆 Winner: Cello's Pizzeria (4.081)</div>
-          <p class="crawl-banner-desc" id="crawlBannerDesc">Crawl overview description.</p>
+          <div class="crawl-banner-winner" id="crawlBannerWinner">🏆 Winner: Johnny's Pizzeria (3.950)</div>
+          <p class="crawl-banner-desc" id="crawlBannerDesc">Suburban showdown across Westchester.</p>
         </div>
 
         <div class="places-list" id="placesList">
-          <!-- Dynamically populated cards -->
+          <!-- Populated by JS -->
         </div>
       </aside>
 
       <!-- MAP AREA -->
-      <main class="map-wrap">
-        <div id="map"></div>
-
-        <div class="map-floating-tools">
-          <button class="map-tool-btn" id="recenterBtn" title="Recenter Map View">🎯</button>
-          <button class="map-tool-btn" id="locateBtn" title="Find My Location">📍</button>
+      <div class="map-wrap">
+        <!-- Interactive Layer Switcher -->
+        <div class="map-layer-switcher" id="layerSwitcher">
+          <button type="button" class="layer-pill active" data-layer="streets" title="Crisp high-contrast streets &amp; labels">🗺️ Streets</button>
+          <button type="button" class="layer-pill" data-layer="dark" title="Sleek dark theme canvas">🌙 Dark</button>
+          <button type="button" class="layer-pill" data-layer="sat" title="Satellite aerial imagery">🛰️ Satellite</button>
         </div>
 
+        <div id="map"></div>
+
+        <!-- Floating map controls -->
+        <div class="map-floating-tools">
+          <button class="map-tool-btn" id="recenterBtn" title="Recenter NYC View">🎯</button>
+          <button class="map-tool-btn" id="locateBtn" title="Show My Location">📍</button>
+        </div>
+
+        <!-- Mobile Floating Toggle -->
         <button class="mobile-nav-toggle" id="mobileNavToggle">
           <span id="mobileNavIcon">📋</span>
           <span id="mobileNavLabel">List View (52)</span>
         </button>
-      </main>
+      </div>
     </div>
   </div>
 
@@ -620,6 +672,8 @@
     };
 
     let map = null;
+    let baseLayers = {};
+    let currentBaseLayer = 'streets';
     let markersLayer = null;
     let routeLayer = null;
     let markersById = {};
@@ -651,14 +705,14 @@
       setMobileView(!isMobileListOpen);
     });
 
-    // Marker Icon Generator
+    // Marker Icon Generator (Crisp contrast numbers on any map)
     function createMarkerIcon(p, isSelected, activeRank) {
       const color = REGION_COLORS[p.region] || '#f59e0b';
       const isWinner = (p.won_years && p.won_years.length > 0);
       const rankText = activeRank ? ('#' + activeRank) : (p.best_rank ? ('#' + p.best_rank) : '★');
-      const trophy = isWinner ? '<span style="position:absolute;top:-6px;right:-6px;font-size:12px">🏆</span>' : '';
-      const size = isSelected ? 40 : 34;
-      const borderW = isSelected ? '3px solid #ffffff' : '2px solid rgba(255,255,255,0.85)';
+      const trophy = isWinner ? '<span style="position:absolute;top:-7px;right:-7px;font-size:13px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8))">🏆</span>' : '';
+      const size = isSelected ? 42 : 36;
+      const borderW = isSelected ? '3px solid #ffffff' : '2.5px solid #ffffff';
 
       const html = `
         <div style="position:relative;width:${size}px;height:${size}px">
@@ -666,8 +720,10 @@
             width:100%;height:100%;border-radius:10px;
             background:${color};border:${borderW};
             display:flex;align-items:center;justify-content:center;
-            color:#ffffff;font-weight:800;font-size:${isSelected ? '14px' : '12px'};
-            box-shadow:0 3px 12px rgba(0,0,0,0.5);transform:${isSelected ? 'scale(1.1)' : 'scale(1)'};
+            color:#ffffff;font-weight:900;font-size:${isSelected ? '14px' : '12px'};
+            box-shadow:0 4px 14px rgba(0,0,0,0.7);
+            text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 2px #000;
+            transform:${isSelected ? 'scale(1.12)' : 'scale(1)'};
             transition:transform 0.15s ease;
           ">
             ${rankText}
@@ -778,7 +834,7 @@
             return `
               <div class="popup-crawl-row">
                 <span><strong>${a.crawl || 'Crawl ' + a.year} (${a.year})</strong></span>
-                <span>⭐ ${scStr} • ${rkStr}</span>
+                <span class="crawl-score">⭐ ${scStr} • ${rkStr}</span>
               </div>
             `;
           }).join('');
@@ -786,10 +842,10 @@
           const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
 
           const popupHtml = `
-            <div class="popup-card">
+            <div class="popup-wrap">
               <div class="popup-photos-strip">
                 <img src="${photo1}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" />
-                <img src="${photo2}" alt="${p.name} Pizza" loading="lazy" referrerpolicy="no-referrer" />
+                <img src="${photo2}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" />
               </div>
               <div class="popup-body">
                 <div class="popup-top-row">
@@ -799,10 +855,10 @@
                 <div class="popup-addr">📍 ${p.address} (${p.neighborhood})</div>
                 <div class="popup-tags-row">
                   <span class="popup-tag popup-style-tag">${p.style}</span>
-                  ${isWinner ? `<span class="popup-tag" style="background:#fef3c7;color:#92400e;font-weight:800">🏆 Champion</span>` : ''}
+                  ${isWinner ? `<span class="popup-tag" style="background:#fbbf24;color:#000000;font-weight:800">🏆 Champion</span>` : ''}
                 </div>
                 <div class="popup-specialty-box">
-                  🍴 <strong>Known For:</strong> ${p.specialty}
+                  🍽️ <strong>Known For:</strong> ${p.specialty}
                 </div>
                 <div class="popup-crawls-title">Official Crawl History (${p.appearances.length}x)</div>
                 <div class="popup-crawls-list">
@@ -822,7 +878,7 @@
           `;
 
           const marker = L.marker(latLng, { icon, zIndexOffset: zOffset }).bindPopup(popupHtml, {
-            maxWidth: 320,
+            maxWidth: 325,
             autoPanPadding: [20, 20]
           });
 
@@ -841,19 +897,19 @@
           markersById[p.id] = { marker, place: p, latLng };
         }
 
-        // Card Item for Sidebar (Clean, 2 Photos, Editorial)
+        // Card Item for Sidebar (Clean, 2 Photos, High Legibility)
         const item = document.createElement('div');
         item.className = 'place-item' + (selectedPlaceId === p.id ? ' selected' : '');
         item.setAttribute('data-id', p.id);
 
-        const rankBadgeHtml = `<div class="rank-pill-badge" style="background:${color}">${activeApp.rank ? '#' + activeApp.rank : '★'}</div>`;
-        const winnerBadgeHtml = isWinner ? `<div class="winner-banner-badge">🏆 Winner</div>` : (isClosed ? `<div class="closed-badge">Closed</div>` : '');
+        const rankPillText = activeApp.rank ? ('#' + activeApp.rank) : (p.best_rank ? ('#' + p.best_rank) : '★');
+        const winnerBadgeHtml = isWinner ? '<span class="winner-banner-badge">🏆 Winner</span>' : (isClosed ? '<span class="closed-badge">Closed</span>' : '');
 
         item.innerHTML = `
           <div class="card-photos-grid">
             <div class="photo-slot">
-              <img src="${photo1}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" />
-              ${rankBadgeHtml}
+              <img src="${photo1}" alt="${p.name} Pizza" loading="lazy" referrerpolicy="no-referrer" />
+              <span class="rank-pill-badge">${rankPillText}</span>
             </div>
             <div class="photo-slot">
               <img src="${photo2}" alt="${p.name} Pizza" loading="lazy" referrerpolicy="no-referrer" />
@@ -869,7 +925,7 @@
               <span class="card-location">${p.neighborhood} • ${p.region}</span>
               <span class="card-style-tag">${p.style}</span>
             </div>
-            <p class="card-specialty">🍴 Known for: ${p.specialty}</p>
+            <div class="card-specialty"><strong>🍽️ Specialty:</strong> ${p.specialty}</div>
           </div>
         `;
 
@@ -896,8 +952,8 @@
       if (map && routeLayer && crawlVal !== 'ALL' && routeCoords.length > 1) {
         L.polyline(routeCoords, {
           color: '#f59e0b',
-          weight: 3,
-          opacity: 0.7,
+          weight: 3.5,
+          opacity: 0.85,
           dashArray: '6, 8'
         }).addTo(routeLayer);
       }
@@ -925,15 +981,47 @@
 
       L.control.zoom({ position: 'topright' }).addTo(map);
 
-      // Clean, High-Contrast Esri Dark Gray Map Base + Reference Labels (Zero Watermarks)
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 16
-      }).addTo(map);
+      // Define Basemap Layers (Default: Crystal-Clear Street Labels)
+      baseLayers = {
+        streets: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19
+        }),
+        dark: L.layerGroup([
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16 }),
+          L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', { maxZoom: 16, pane: 'overlayPane' })
+        ]),
+        sat: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          maxZoom: 19
+        })
+      };
 
-      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 16,
-        pane: 'overlayPane'
-      }).addTo(map);
+      currentBaseLayer = 'streets';
+      baseLayers.streets.addTo(map);
+
+      function switchBaseLayer(name) {
+        if (currentBaseLayer === name) return;
+        if (currentBaseLayer === 'dark') {
+          baseLayers.dark.remove();
+        } else {
+          map.removeLayer(baseLayers[currentBaseLayer]);
+        }
+        currentBaseLayer = name;
+        if (name === 'dark') {
+          baseLayers.dark.addTo(map);
+        } else {
+          baseLayers[name].addTo(map);
+        }
+        document.querySelectorAll('.layer-pill').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-layer') === name);
+        });
+      }
+
+      document.querySelectorAll('.layer-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const lyr = btn.getAttribute('data-layer');
+          switchBaseLayer(lyr);
+        });
+      });
 
       markersLayer = L.layerGroup().addTo(map);
       routeLayer = L.layerGroup().addTo(map);

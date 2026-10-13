@@ -1,486 +1,1154 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>🍕 Pizza Crawl Map (2015–2026)</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
-      background: #020617; color: #f1f5f9;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
-    #app-root {
-      display: flex; flex-direction: column; width: 100vw; height: 100vh; overflow: hidden;
-    }
-    .top-header {
-      background: #0f172a; border-bottom: 1px solid #1e293b; padding: 10px 14px; flex-shrink: 0; z-index: 30;
-    }
-    .header-row {
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
-    }
-    .brand-box {
-      display: flex; align-items: center; gap: 10px; min-width: 0;
-    }
-    .logo-badge {
-      width: 36px; height: 36px; border-radius: 10px; background: rgba(245,158,11,0.18);
-      border: 1px solid rgba(245,158,11,0.4); display: flex; align-items: center; justify-content: center;
-      font-size: 18px; flex-shrink: 0;
-    }
-    .brand-title {
-      font-size: 15px; font-weight: 700; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .brand-sub {
-      font-size: 11px; color: #94a3b8; margin: 2px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
-    .actions-row {
-      display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-    }
-    .btn {
-      border: none; border-radius: 8px; padding: 7px 11px; font-size: 12px; font-weight: 700;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: opacity 0.15s;
-    }
-    .btn:hover { opacity: 0.9; }
-    .btn-share { background: #f59e0b; color: #090d16; }
-    .btn-locate { background: #2563eb; color: #ffffff; }
-    .btn-list-toggle { background: #1e293b; color: #fbbf24; border: 1px solid #334155; display: none; }
-    .filters-bar {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;
-    }
-    .filter-control {
-      background: #1e293b; border: 1px solid #334155; color: #f8fafc; font-size: 12px;
-      border-radius: 8px; padding: 7px 10px; outline: none; width: 100%;
-    }
-    .filter-search { grid-column: span 2; }
-    @media (min-width: 640px) {
-      .filters-bar { display: flex; flex-wrap: wrap; align-items: center; }
-      .filter-control { width: auto; }
-      .filter-search { width: 220px; }
-      .brand-title { font-size: 17px; }
-    }
-    @media (max-width: 767px) {
-      .btn-list-toggle { display: inline-flex; }
-      .hide-xs { display: none; }
-    }
-    .main-area {
-      display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; height: 100%;
-    }
-    .sidebar {
-      width: 370px; background: #0f172a; border-right: 1px solid #1e293b;
-      display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 20;
-    }
-    @media (max-width: 767px) {
-      .sidebar {
-        position: absolute; inset: 0; width: 100%; display: none;
-      }
-      .sidebar.mobile-open {
-        display: flex;
-      }
-    }
-    .sidebar-header {
-      padding: 9px 14px; border-bottom: 1px solid #1e293b; display: flex;
-      align-items: center; justify-content: space-between; font-size: 12px; color: #94a3b8;
-    }
-    .legend-dots { display: flex; align-items: center; gap: 8px; font-size: 11px; }
-    .dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; margin-right: 3px; }
-    .places-list { flex: 1; overflow-y: auto; padding-bottom: 40px; }
-    .place-item {
-      padding: 12px 14px; border-bottom: 1px solid rgba(30,41,59,0.7);
-      display: flex; align-items: flex-start; gap: 11px; cursor: pointer; transition: background 0.12s;
-    }
-    .place-item:hover { background: rgba(30,41,59,0.7); }
-    .rank-circle {
-      width: 32px; height: 32px; border-radius: 999px; display: flex; align-items: center;
-      justify-content: center; font-weight: 800; font-size: 12px; color: #fff; flex-shrink: 0; margin-top: 2px;
-    }
-    .place-info { flex: 1; min-width: 0; }
-    .place-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-    .place-name { font-size: 14px; font-weight: 600; color: #fff; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .score-pill {
-      font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 6px;
-      background: #1e293b; color: #fbbf24; border: 1px solid #334155; flex-shrink: 0;
-    }
-    .place-meta { font-size: 12px; color: #94a3b8; margin: 3px 0 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .map-wrap { flex: 1; position: relative; width: 100%; height: 100%; }
-    #map { width: 100%; height: 100%; z-index: 10; }
-    .custom-pin {
-      display: flex; align-items: center; justify-content: center; border-radius: 9999px;
-      font-weight: 800; font-size: 12px; color: #fff; border: 2.5px solid #fff;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.45);
-    }
-    .leaflet-popup-content-wrapper { border-radius: 14px; padding: 2px; box-shadow: 0 10px 25px rgba(0,0,0,0.25); }
-    .leaflet-popup-content { margin: 10px 12px; }
-    .popup-card { min-width: 235px; max-width: 275px; color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .popup-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 5px; color: #fff; margin-bottom: 5px; }
-    .popup-title { font-weight: 700; font-size: 16px; margin: 0; line-height: 1.25; color: #0f172a; }
-    .popup-sub { font-size: 12px; color: #64748b; margin: 2px 0 0 0; }
-    .popup-addr { font-size: 12px; color: #475569; margin: 4px 0 0 0; }
-    .popup-history { margin-top: 8px; background: #f8fafc; border-radius: 8px; padding: 7px 9px; border: 1px solid #e2e8f0; }
-    .popup-history-title { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
-    .popup-history-row { font-size: 11px; padding: 3px 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; border-bottom: 1px solid #f1f5f9; }
-    .popup-history-row:last-child { border-bottom: none; }
-    .popup-notes { font-size: 11px; font-style: italic; color: #64748b; margin: 6px 0 0 0; }
-    .popup-gmaps-btn {
-      margin-top: 9px; display: block; width: 100%; text-align: center; background: #2563eb;
-      color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 12px;
-      padding: 9px 12px; border-radius: 8px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>🍕 Official Pizza Crawl Map & Leaderboard (2015–2026)</title>
+<meta name="description" content="Interactive map and official leaderboard of all 52 pizzerias across 12 annual Pizza Crawls (2015–2026) in NYC, Westchester & New Haven." />
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root {
+--bg-dark: #070b14;
+--bg-panel: #0f172a;
+--bg-card: #162033;
+--bg-card-hover: #1e293b;
+--border: #26334d;
+--border-subtle: rgba(51, 65, 85, 0.55);
+--text-main: #f8fafc;
+--text-muted: #94a3b8;
+--text-dim: #64748b;
+--amber: #f59e0b;
+--amber-light: #fbbf24;
+--emerald: #10b981;
+--blue: #3b82f6;
+--rose: #f43f5e;
+--purple: #8b5cf6;
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+background: var(--bg-dark); color: var(--text-main);
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+-webkit-font-smoothing: antialiased;
+}
+#app-root {
+display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; overflow: hidden;
+}
+/* TOP HEADER */
+.top-header {
+background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
+border-bottom: 1px solid var(--border);
+padding: 10px 14px 8px 14px;
+flex-shrink: 0;
+z-index: 40;
+box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+.header-row {
+display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.brand-box {
+display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;
+}
+.logo-badge {
+width: 38px; height: 38px; border-radius: 11px;
+background: linear-gradient(135deg, rgba(245,158,11,0.25), rgba(234,88,12,0.15));
+border: 1px solid rgba(245,158,11,0.5);
+display: flex; align-items: center; justify-content: center;
+font-size: 20px; flex-shrink: 0;
+box-shadow: 0 2px 8px rgba(245,158,11,0.15);
+}
+.brand-title-wrap { min-width: 0; flex: 1; }
+.brand-title-row { display: flex; align-items: center; gap: 7px; flex-wrap: nowrap; }
+.brand-title {
+font-size: 16px; font-weight: 800; color: #ffffff; margin: 0;
+letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.verified-pill {
+display: inline-flex; align-items: center; gap: 3px;
+font-size: 10px; font-weight: 700; color: #34d399;
+background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.35);
+padding: 1px 6px; border-radius: 999px; white-space: nowrap; flex-shrink: 0;
+}
+.brand-sub {
+font-size: 11.5px; color: var(--text-muted); margin: 2px 0 0 0;
+white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.actions-row {
+display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.btn {
+border: 1px solid transparent; border-radius: 9px; padding: 7px 11px;
+font-size: 12px; font-weight: 700; cursor: pointer;
+display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+transition: all 0.15s ease; text-decoration: none; white-space: nowrap;
+line-height: 1.1;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.btn:active { transform: translateY(0); }
+.btn-sheet {
+background: #162033; color: #e2e8f0; border-color: #2e3f5c;
+}
+.btn-locate {
+background: rgba(37, 99, 235, 0.2); color: #60a5fa; border-color: rgba(59, 130, 246, 0.45);
+}
+.btn-share {
+background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+color: #090d16; border-color: #fbbf24;
+box-shadow: 0 2px 10px rgba(245, 158, 11, 0.25);
+}
+/* CONTROLS & FILTERS */
+.controls-row {
+display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;
+}
+.filter-control {
+background: #141e30; border: 1px solid #2a3954; color: #f8fafc;
+font-size: 12px; font-weight: 600; border-radius: 8px; padding: 7px 10px;
+outline: none; width: 100%; transition: border-color 0.15s;
+}
+.filter-control:focus { border-color: var(--amber); }
+.search-wrap {
+grid-column: span 2; position: relative; display: flex; align-items: center; width: 100%;
+}
+.search-icon {
+position: absolute; left: 10px; font-size: 12px; color: var(--text-muted); pointer-events: none;
+}
+.search-wrap .search-input {
+width: 100% !important; padding-left: 28px; padding-right: 28px; font-weight: 500;
+}
+.search-clear {
+position: absolute; right: 6px; background: #26334d; color: #cbd5e1;
+border: none; border-radius: 999px; width: 18px; height: 18px;
+font-size: 10px; cursor: pointer; display: none; align-items: center; justify-content: center;
+}
+/* CUSTOM DARK SCROLLBAR */
+.places-list::-webkit-scrollbar { width: 6px; }
+.places-list::-webkit-scrollbar-track { background: #0b1120; }
+.places-list::-webkit-scrollbar-thumb { background: #26334d; border-radius: 999px; }
+.places-list::-webkit-scrollbar-thumb:hover { background: #3b4f73; }
+/* QUICK CHIPS BAR */
+.chips-bar {
+display: flex; align-items: center; gap: 6px; margin-top: 8px;
+overflow-x: auto; padding-bottom: 2px; scrollbar-width: none;
+}
+.chips-bar::-webkit-scrollbar { display: none; }
+.chip {
+background: #131c2e; border: 1px solid #24324b; color: #cbd5e1;
+font-size: 11.5px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px;
+transition: all 0.14s ease; flex-shrink: 0;
+}
+.chip:hover { background: #1e293b; border-color: #3b4f73; color: #fff; }
+.chip.active {
+background: rgba(245, 158, 11, 0.2); border-color: var(--amber); color: var(--amber-light);
+box-shadow: 0 0 10px rgba(245, 158, 11, 0.15);
+}
+@media (min-width: 768px) {
+.brand-title { font-size: 18px; }
+.controls-row {
+display: flex; align-items: center; gap: 8px;
+}
+.filter-control { width: auto; min-width: 195px; }
+.search-wrap { flex: 1; max-width: 360px; }
+}
+@media (max-width: 767px) {
+.hide-mobile { display: none !important; }
+.verified-pill { display: none !important; }
+.top-header { padding: 8px 10px 7px 10px; }
+.logo-badge { width: 32px; height: 32px; font-size: 17px; }
+.brand-title { font-size: 14px; }
+.brand-sub { font-size: 10.5px; }
+.btn { padding: 6px 8px; font-size: 11.5px; }
+.filter-control { font-size: 11.5px; padding: 6px 7px; }
+}
+/* MAIN SPLIT AREA */
+.main-area {
+display: flex; flex: 1; position: relative; overflow: hidden; width: 100%; height: 100%;
+}
+.sidebar {
+width: 400px; background: var(--bg-panel); border-right: 1px solid var(--border);
+display: flex; flex-direction: column; flex-shrink: 0; height: 100%; z-index: 25;
+}
+@media (max-width: 767px) {
+.sidebar {
+position: absolute; inset: 0; width: 100%; display: none; z-index: 30;
+}
+.sidebar.mobile-open {
+display: flex;
+}
+}
+/* SIDEBAR HEADER & CRAWL SUMMARY BANNER */
+.sidebar-header {
+padding: 8px 14px; background: #0b1120; border-bottom: 1px solid var(--border);
+display: flex; align-items: center; justify-content: space-between; gap: 6px;
+font-size: 11.5px; color: var(--text-muted); flex-shrink: 0;
+}
+.legend-dots { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 600; }
+.dot { width: 8px; height: 8px; border-radius: 999px; display: inline-block; margin-right: 3px; }
+.crawl-banner {
+display: none; margin: 10px 12px 2px 12px; padding: 11px 13px;
+background: linear-gradient(135deg, rgba(245,158,11,0.14) 0%, rgba(30,41,59,0.85) 100%);
+border: 1px solid rgba(245,158,11,0.45); border-radius: 12px; flex-shrink: 0;
+}
+.crawl-banner.visible { display: block; }
+.crawl-banner-top {
+display: flex; align-items: center; justify-content: space-between; gap: 8px;
+}
+.crawl-banner-title {
+font-size: 13px; font-weight: 800; color: #fbbf24; margin: 0;
+}
+.crawl-banner-avg {
+font-size: 11px; font-weight: 700; color: #e2e8f0;
+background: rgba(15,23,42,0.75); padding: 2px 7px; border-radius: 6px;
+border: 1px solid rgba(245,158,11,0.3);
+}
+.crawl-banner-winner {
+font-size: 12px; color: #f8fafc; margin: 4px 0 2px 0; font-weight: 600;
+}
+.crawl-banner-desc {
+font-size: 11px; color: #cbd5e1; margin: 0; line-height: 1.35;
+}
+/* PLACES LIST */
+.places-list { flex: 1; overflow-y: auto; padding: 6px 10px 84px 10px; }
+.place-item {
+margin-bottom: 7px; padding: 11px 12px;
+background: var(--bg-card); border: 1px solid var(--border-subtle);
+border-radius: 12px; display: flex; align-items: flex-start; gap: 11px;
+cursor: pointer; transition: all 0.14s ease; position: relative;
+}
+.place-item:hover {
+background: var(--bg-card-hover); border-color: #3b4f73;
+transform: translateY(-1px);
+}
+.place-item.selected {
+background: #1e293b; border-color: var(--amber);
+box-shadow: 0 0 0 1px rgba(245,158,11,0.35), 0 6px 16px rgba(0,0,0,0.3);
+}
+.rank-col {
+display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0;
+}
+.rank-circle {
+width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center;
+justify-content: center; font-weight: 800; font-size: 12.5px; color: #fff;
+box-shadow: 0 2px 6px rgba(0,0,0,0.35); border: 1.5px solid rgba(255,255,255,0.25);
+}
+.crawl-pos-tag {
+font-size: 9.5px; font-weight: 800; color: #fbbf24;
+background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35);
+padding: 1px 5px; border-radius: 4px; white-space: nowrap;
+}
+.place-info { flex: 1; min-width: 0; }
+.place-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+.place-name-wrap { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; min-width: 0; }
+.place-name {
+font-size: 14px; font-weight: 700; color: #fff; margin: 0; line-height: 1.25;
+}
+.winner-crown {
+display: inline-flex; align-items: center; gap: 2px;
+font-size: 10px; font-weight: 800; background: rgba(245,158,11,0.2);
+color: #fbbf24; border: 1px solid rgba(245,158,11,0.45);
+padding: 1px 5px; border-radius: 5px; white-space: nowrap;
+}
+.closed-tag {
+display: inline-flex; align-items: center;
+font-size: 10px; font-weight: 700; background: rgba(244,63,94,0.18);
+color: #fda4af; border: 1px solid rgba(244,63,94,0.4);
+padding: 1px 5px; border-radius: 5px; white-space: nowrap;
+}
+.score-box {
+display: flex; flex-direction: column; align-items: flex-end; flex-shrink: 0;
+}
+.score-pill {
+font-size: 12px; font-weight: 800; padding: 2px 7px; border-radius: 6px;
+background: #0f172a; color: #fbbf24; border: 1px solid #334155;
+font-variant-numeric: tabular-nums;
+}
+.score-bar-track {
+width: 48px; height: 3.5px; background: #0f172a; border-radius: 999px;
+margin-top: 3px; overflow: hidden;
+}
+.score-bar-fill { height: 100%; border-radius: 999px; }
+.place-meta {
+font-size: 11.5px; color: #cbd5e1; margin: 3px 0 0 0;
+display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+}
+.style-badge {
+font-size: 10.5px; font-weight: 600; color: #93c5fd;
+background: rgba(59,130,246,0.12); border: 1px solid rgba(59,130,246,0.28);
+padding: 1px 6px; border-radius: 4px;
+}
+.place-specialty {
+font-size: 11px; color: var(--text-muted); margin: 4px 0 0 0;
+white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.place-crawls-row {
+display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 5px;
+}
+.mini-crawl-pill {
+font-size: 10px; font-weight: 600; color: #94a3b8;
+background: #0b1120; border: 1px solid #1e293b;
+padding: 1.5px 6px; border-radius: 4px;
+}
+/* MAP AREA & FLOATING CONTROLS */
+.map-wrap { flex: 1; position: relative; width: 100%; height: 100%; }
+#map { width: 100%; height: 100%; z-index: 10; background: #0b1120; }
+/* FLOATING MAP OVERLAYS */
+.map-floating-top {
+position: absolute; top: 10px; left: 10px; right: 56px; z-index: 20;
+pointer-events: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.map-crawl-pill {
+pointer-events: auto; display: none; align-items: center; gap: 8px;
+background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(8px);
+border: 1px solid rgba(245, 158, 11, 0.55); color: #f8fafc;
+padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+box-shadow: 0 4px 15px rgba(0,0,0,0.45);
+}
+.map-crawl-pill.visible { display: inline-flex; }
+.map-crawl-reset {
+background: rgba(245,158,11,0.2); border: none; color: #fbbf24;
+border-radius: 999px; padding: 2px 7px; font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.map-floating-tools {
+position: absolute; bottom: 88px; right: 10px; z-index: 20;
+display: flex; flex-direction: column; gap: 6px;
+}
+@media (min-width: 768px) {
+.map-floating-tools { bottom: 92px; }
+}
+.map-tool-btn {
+background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(6px);
+color: #f8fafc; border: 1px solid #334155; border-radius: 8px;
+padding: 7px 10px; font-size: 11.5px; font-weight: 700; cursor: pointer;
+box-shadow: 0 3px 10px rgba(0,0,0,0.4); display: flex; align-items: center; gap: 4px;
+}
+.map-tool-btn:hover { background: #1e293b; border-color: #475569; }
+.map-tool-btn.active { border-color: var(--amber); color: var(--amber-light); }
+/* MOBILE BOTTOM FLOATING BAR */
+.mobile-bottom-bar {
+display: none; position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+z-index: 35; gap: 8px; align-items: center;
+}
+@media (max-width: 767px) {
+.mobile-bottom-bar { display: flex; }
+}
+.mobile-fab {
+background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+color: #fbbf24; border: 1.5px solid var(--amber);
+border-radius: 999px; padding: 10px 18px; font-size: 13px; font-weight: 800;
+box-shadow: 0 6px 20px rgba(0,0,0,0.65); cursor: pointer;
+display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
+}
+/* CUSTOM MAP MARKERS */
+.pin-wrapper {
+position: relative; display: flex; align-items: center; justify-content: center;
+}
+.custom-pin {
+display: flex; align-items: center; justify-content: center; border-radius: 9999px;
+font-weight: 800; font-size: 12px; color: #fff; border: 2.5px solid #fff;
+box-shadow: 0 3px 10px rgba(0,0,0,0.55); position: relative;
+transition: transform 0.15s ease;
+}
+.custom-pin.is-winner {
+border-color: #fef08a;
+box-shadow: 0 0 0 2px rgba(245,158,11,0.7), 0 4px 12px rgba(0,0,0,0.6);
+}
+.custom-pin.is-closed {
+opacity: 0.78; border-style: dashed;
+}
+.pin-crown {
+position: absolute; top: -9px; right: -6px; font-size: 11px;
+filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8)); pointer-events: none;
+}
+.pin-label {
+position: absolute; left: 36px; top: 50%; transform: translateY(-50%);
+background: rgba(15, 23, 42, 0.92); color: #f8fafc;
+border: 1px solid rgba(148, 163, 184, 0.4); border-radius: 6px;
+padding: 2px 7px; font-size: 11px; font-weight: 700; white-space: nowrap;
+box-shadow: 0 2px 8px rgba(0,0,0,0.5); pointer-events: none;
+display: none;
+}
+.show-map-labels .pin-label { display: block; }
+.pin-label-score { color: #fbbf24; margin-left: 3px; }
+/* LEAFLET POPUP STYLING */
+.leaflet-popup-content-wrapper {
+border-radius: 16px; padding: 2px;
+background: #ffffff; color: #0f172a;
+box-shadow: 0 14px 32px rgba(0,0,0,0.45);
+}
+.leaflet-popup-content { margin: 11px 13px; }
+.popup-card {
+width: min(280px, 76vw); color: #0f172a;
+font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+.popup-badges-row {
+display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px;
+}
+.popup-badge {
+display: inline-block; font-size: 11px; font-weight: 800;
+padding: 2.5px 8px; border-radius: 6px; color: #fff;
+}
+.popup-winner-badge {
+display: inline-block; font-size: 10.5px; font-weight: 800;
+padding: 2px 7px; border-radius: 6px; background: #fef3c7; color: #b45309;
+border: 1px solid #f59e0b;
+}
+.popup-closed-badge {
+display: inline-block; font-size: 10.5px; font-weight: 800;
+padding: 2px 7px; border-radius: 6px; background: #ffe4e6; color: #be123c;
+border: 1px solid #f43f5e;
+}
+.popup-title { font-weight: 800; font-size: 16.5px; margin: 0; line-height: 1.2; color: #0f172a; }
+.popup-sub { font-size: 12px; font-weight: 600; color: #475569; margin: 3px 0 0 0; }
+.popup-addr { font-size: 11.5px; color: #64748b; margin: 2px 0 0 0; }
+.popup-Tags {
+margin-top: 7px; padding: 6px 8px; background: #f8fafc;
+border: 1px solid #e2e8f0; border-radius: 8px; font-size: 11.5px;
+}
+.popup-tag-line { margin: 2px 0; color: #334155; }
+.popup-history {
+margin-top: 8px; background: #f1f5f9; border-radius: 8px;
+padding: 7px 9px; border: 1px solid #cbd5e1;
+}
+.popup-history-title {
+font-size: 10px; font-weight: 800; color: #475569;
+text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+}
+.popup-history-row {
+font-size: 11px; padding: 3.5px 0; display: flex; align-items: center;
+justify-content: space-between; gap: 8px; border-bottom: 1px solid #e2e8f0;
+}
+.popup-history-row:last-child { border-bottom: none; }
+.popup-notes { font-size: 11px; font-style: italic; color: #475569; margin: 6px 0 0 0; line-height: 1.35; }
+.popup-actions {
+display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 10px;
+}
+.popup-gmaps-btn {
+display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+text-align: center; background: #2563eb; color: #ffffff !important;
+text-decoration: none; font-weight: 700; font-size: 12px;
+padding: 9px 12px; border-radius: 8px; box-shadow: 0 2px 6px rgba(37,99,235,0.3);
+}
+.popup-gmaps-btn:hover { background: #1d4ed8; }
+.popup-copy-btn {
+background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1;
+border-radius: 8px; padding: 8px 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.popup-copy-btn:hover { background: #e2e8f0; }
+/* SHARE & EXPORT MODAL */
+.modal-backdrop {
+position: fixed; inset: 0; background: rgba(2, 6, 23, 0.78);
+backdrop-filter: blur(5px); z-index: 100; display: none;
+align-items: center; justify-content: center; padding: 16px;
+}
+.modal-backdrop.open { display: flex; }
+.modal-card {
+background: #0f172a; border: 1px solid #334155; border-radius: 18px;
+max-width: 420px; width: 100%; padding: 20px; color: #f8fafc;
+box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+}
+.modal-header {
+display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;
+}
+.modal-title { font-size: 17px; font-weight: 800; margin: 0; color: #fff; }
+.modal-close {
+background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+width: 28px; height: 28px; border-radius: 999px; cursor: pointer; font-weight: 700;
+}
+.share-url-box {
+display: flex; gap: 6px; margin-top: 8px;
+}
+.share-url-input {
+flex: 1; background: #070b14; border: 1px solid #334155; color: #cbd5e1;
+border-radius: 8px; padding: 8px 10px; font-size: 11.5px; outline: none;
+}
+.modal-links-grid {
+display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px;
+}
+.modal-action-card {
+background: #162033; border: 1px solid #2a3954; border-radius: 10px;
+padding: 10px; text-decoration: none; color: #f8fafc; font-size: 12px;
+font-weight: 700; display: flex; flex-direction: column; gap: 3px;
+transition: background 0.15s; cursor: pointer; text-align: left;
+}
+.modal-action-card:hover { background: #1e293b; border-color: var(--amber); }
+.modal-action-sub { font-size: 10.5px; color: #94a3b8; font-weight: 500; }
+</style>
 </head>
 <body>
-  <div id="app-root">
-    <header class="top-header">
-      <div class="header-row">
-        <div class="brand-box">
-          <div class="logo-badge">🍕</div>
-          <div style="min-width:0">
-            <h1 class="brand-title">Pizza Crawl Map (2015–2026)</h1>
-            <p class="brand-sub">52 Pizzerias • 12 Annual Crawls • NYC, Westchester &amp; CT</p>
-          </div>
-        </div>
-
-        <div class="actions-row">
-          <button id="shareBtn" class="btn btn-share" title="Send to a friend">
-            <span>📲</span><span>Share</span>
-          </button>
-          <button id="locateBtn" class="btn btn-locate" title="Show my location">
-            <span>📍</span><span class="hide-xs">Near Me</span>
-          </button>
-          <button id="mobileToggleBtn" class="btn btn-list-toggle">
-            <span id="mobileToggleIcon">🏆</span>
-            <span id="mobileToggleText">List (52)</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="filters-bar">
-        <select id="crawlFilter" class="filter-control">
-          <option value="ALL">All 12 Crawls (2015–2026)</option>
-          <option value="2026">2026 — Crawl XII (BK/MHTN)</option>
-          <option value="2025">2025 — Crawl XI (Westchester)</option>
-          <option value="2024">2024 — Crawl X (G.O.A.T.)</option>
-          <option value="2023">2023 — Crawl IX (Manhattan)</option>
-          <option value="2022">2022 — Crawl VIII (Staten Island)</option>
-          <option value="2021">2021 — Crawl VII (Brooklyn)</option>
-          <option value="2020">2020 — Crawl VI (New Haven)</option>
-          <option value="2019">2019 — Crawl V (Bronx)</option>
-          <option value="2018">2018 — Crawl IV (Fire &amp; Slice)</option>
-          <option value="2017">2017 — Crawl III (Cheese in Heat)</option>
-          <option value="2016">2016 — Crawl II (Brooklyn)</option>
-          <option value="2015">2015 — Crawl I (Inaugural)</option>
-        </select>
-
-        <select id="regionFilter" class="filter-control">
-          <option value="ALL">All Regions (52)</option>
-          <option value="Manhattan">Manhattan (18)</option>
-          <option value="Brooklyn">Brooklyn (14)</option>
-          <option value="Staten Island">Staten Island (5)</option>
-          <option value="Bronx">Bronx (5)</option>
-          <option value="Westchester">Westchester (5)</option>
-          <option value="New Haven, CT">New Haven, CT (5)</option>
-        </select>
-
-        <input id="searchInput" type="search" placeholder="Search pizzeria or neighborhood..." class="filter-control filter-search" />
-      </div>
-    </header>
-
-    <div class="main-area">
-      <aside id="sidebarPanel" class="sidebar">
-        <div class="sidebar-header">
-          <span id="countLabel" style="font-weight:600;color:#cbd5e1">Showing 52 pizzerias</span>
-          <div class="legend-dots">
-            <span><i class="dot" style="background:#f59e0b"></i>4.0+</span>
-            <span><i class="dot" style="background:#10b981"></i>3.6+</span>
-            <span><i class="dot" style="background:#3b82f6"></i>3.2+</span>
-            <span><i class="dot" style="background:#f43f5e"></i>&lt;3.2</span>
-          </div>
-        </div>
-        <div id="placesList" class="places-list"></div>
-      </aside>
-
-      <main class="map-wrap">
-        <div id="map"></div>
-      </main>
-    </div>
-  </div>
-
-  <script>
-    function ensureLeafletAndBoot() {
-      if (typeof window.L !== 'undefined') {
-        initPizzaMap();
-        return;
-      }
-      if (!document.getElementById('leaflet-js-loader')) {
-        const s = document.createElement('script');
-        s.id = 'leaflet-js-loader';
-        s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        s.onload = initPizzaMap;
-        document.head.appendChild(s);
-      } else {
-        setTimeout(ensureLeafletAndBoot, 50);
-      }
-    }
-
-    function initPizzaMap() {
-      if (window.__pizzaMapInitialized) return;
-      window.__pizzaMapInitialized = true;
-
-      if (!document.querySelector('link[href*="leaflet.css"]')) {
-        const lcss = document.createElement('link');
-        lcss.rel = 'stylesheet';
-        lcss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-        document.head.appendChild(lcss);
-      }
-
-      let PLACES = [];
-      let mobileListOpen = false;
-      let userLocationMarker = null;
-      let currentFilteredCount = 52;
-
-      const map = L.map('map', {
-        center: [40.735, -73.965],
-        zoom: 12,
-        zoomControl: false
-      });
-
-      L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-      const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['mt0','mt1','mt2','mt3'],
-        attribution: '&copy; Google Maps'
-      }).addTo(map);
-
-      const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['mt0','mt1','mt2','mt3'],
-        attribution: '&copy; Google Maps Satellite'
-      });
-
-      L.control.layers({
-        "Google Maps": googleStreets,
-        "Satellite": googleHybrid
-      }, null, { position: 'topright' }).addTo(map);
-
-      const markersLayer = L.layerGroup().addTo(map);
-
-      function getTierColor(score) {
-        if (score === null || score === undefined) return '#8b5cf6';
-        if (score >= 4.0) return '#f59e0b';
-        if (score >= 3.6) return '#10b981';
-        if (score >= 3.2) return '#3b82f6';
-        return '#f43f5e';
-      }
-
-      function toggleMobileView(forceMap) {
-        const sidebar = document.getElementById('sidebarPanel');
-        const icon = document.getElementById('mobileToggleIcon');
-        const text = document.getElementById('mobileToggleText');
-        if (forceMap === true) {
-          mobileListOpen = false;
-        } else {
-          mobileListOpen = !mobileListOpen;
-        }
-        if (mobileListOpen) {
-          sidebar.classList.add('mobile-open');
-          icon.textContent = '🗺️';
-          text.textContent = 'Map View';
-        } else {
-          sidebar.classList.remove('mobile-open');
-          icon.textContent = '🏆';
-          text.textContent = `List (${currentFilteredCount})`;
-          setTimeout(() => map.invalidateSize(), 60);
-        }
-      }
-
-      function render() {
-        const crawlVal = document.getElementById('crawlFilter').value;
-        const regionVal = document.getElementById('regionFilter').value;
-        const query = document.getElementById('searchInput').value.trim().toLowerCase();
-
-        markersLayer.clearLayers();
-        const listEl = document.getElementById('placesList');
-        listEl.innerHTML = '';
-
-        const filtered = PLACES.filter(p => {
-          if (regionVal !== 'ALL' && p.region !== regionVal) return false;
-          if (crawlVal !== 'ALL') {
-            const yr = parseInt(crawlVal, 10);
-            if (!p.appearances.some(a => a.year === yr)) return false;
-          }
-          if (query) {
-            const hay = (p.name + ' ' + p.neighborhood + ' ' + p.region + ' ' + p.address + ' ' + p.notes).toLowerCase();
-            if (!hay.includes(query)) return false;
-          }
-          return true;
-        });
-
-        filtered.sort((a, b) => {
-          if (crawlVal !== 'ALL') {
-            const yr = parseInt(crawlVal, 10);
-            const appA = a.appearances.find(x => x.year === yr);
-            const appB = b.appearances.find(x => x.year === yr);
-            const rA = appA && appA.rank ? appA.rank : 999;
-            const rB = appB && appB.rank ? appB.rank : 999;
-            return rA - rB;
-          }
-          const rA = a.best_rank ? a.best_rank : 999;
-          const rB = b.best_rank ? b.best_rank : 999;
-          return rA - rB;
-        });
-
-        currentFilteredCount = filtered.length;
-        document.getElementById('countLabel').textContent = `Showing ${filtered.length} pizzeria${filtered.length === 1 ? '' : 's'}`;
-        if (!mobileListOpen) {
-          document.getElementById('mobileToggleText').textContent = `List (${filtered.length})`;
-        }
-
-        const bounds = [];
-
-        filtered.forEach(p => {
-          let activeApp = p.appearances[0];
-          if (crawlVal !== 'ALL') {
-            const yr = parseInt(crawlVal, 10);
-            activeApp = p.appearances.find(x => x.year === yr) || p.appearances[0];
-          }
-          const color = getTierColor(activeApp.score);
-
-          const icon = L.divIcon({
-            className: '',
-            html: `<div class="custom-pin" style="background:${color};width:32px;height:32px;">${activeApp.rank ? activeApp.rank : '★'}</div>`,
-            iconSize: [32, 32],
-            iconAnchor: [16, 16],
-            popupAnchor: [0, -16]
-          });
-
-          const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
-          const appsHtml = p.appearances.map(a =>
-            `<div class="popup-history-row">
-              <span style="color:#334155;font-weight:500">${a.year} — ${a.crawl}</span>
-              <span style="font-weight:700;color:#0f172a;white-space:nowrap">${a.score !== null ? a.score.toFixed(3) + ' (#' + a.rank + ')' : 'Inaugural'}</span>
-            </div>`
-          ).join('');
-
-          const popupHtml = `
-            <div class="popup-card">
-              <span class="popup-badge" style="background:${color}">
-                ${activeApp.rank ? 'Rank #' + activeApp.rank : '2015 Crawl'} • ${activeApp.score !== null ? activeApp.score.toFixed(3) : 'Unscored'}
-              </span>
-              <h3 class="popup-title">${p.name}</h3>
-              <p class="popup-sub">${p.neighborhood} • ${p.region}</p>
-              <p class="popup-addr">${p.address}</p>
-              <div class="popup-history">
-                <div class="popup-history-title">Crawl History</div>
-                ${appsHtml}
-              </div>
-              <p class="popup-notes">${p.notes}</p>
-              <a href="${gmapsUrl}" target="_blank" rel="noopener" class="popup-gmaps-btn">
-                Open in Google Maps App ↗
-              </a>
-            </div>
-          `;
-
-          const marker = L.marker([p.lat, p.lng], { icon }).bindPopup(popupHtml);
-          markersLayer.addLayer(marker);
-          bounds.push([p.lat, p.lng]);
-
-          const item = document.createElement('div');
-          item.className = 'place-item';
-          item.innerHTML = `
-            <div class="rank-circle" style="background:${color}">
-              ${activeApp.rank ? '#' + activeApp.rank : '★'}
-            </div>
-            <div class="place-info">
-              <div class="place-top">
-                <h4 class="place-name">${p.name}</h4>
-                <span class="score-pill">${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</span>
-              </div>
-              <p class="place-meta">${p.neighborhood} (${p.region}) • ${p.address}</p>
-            </div>
-          `;
-          item.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-              toggleMobileView(true);
-            }
-            setTimeout(() => {
-              map.setView([p.lat, p.lng], 16, { animate: true });
-              marker.openPopup();
-            }, 80);
-          });
-          listEl.appendChild(item);
-        });
-
-        if (bounds.length > 0) {
-          if (crawlVal === 'ALL' && regionVal === 'ALL' && !query) {
-            map.setView([40.735, -73.965], 11);
-          } else {
-            map.fitBounds(bounds, { padding: [35, 35], maxZoom: 15 });
-          }
-        }
-        setTimeout(() => map.invalidateSize(), 100);
-      }
-
-      document.getElementById('mobileToggleBtn').addEventListener('click', () => toggleMobileView());
-      document.getElementById('crawlFilter').addEventListener('change', render);
-      document.getElementById('regionFilter').addEventListener('change', render);
-      document.getElementById('searchInput').addEventListener('input', render);
-
-      document.getElementById('locateBtn').addEventListener('click', () => {
-        if (!navigator.geolocation) {
-          alert('Geolocation is not supported by your browser.');
-          return;
-        }
-        navigator.geolocation.getCurrentPosition(pos => {
-          const { latitude, longitude } = pos.coords;
-          if (userLocationMarker) map.removeLayer(userLocationMarker);
-          userLocationMarker = L.circleMarker([latitude, longitude], {
-            radius: 9,
-            fillColor: '#3b82f6',
-            color: '#ffffff',
-            weight: 3,
-            fillOpacity: 1
-          }).addTo(map).bindPopup('<b>You are here</b>').openPopup();
-          map.setView([latitude, longitude], 14, { animate: true });
-        }, () => {
-          alert('Unable to retrieve your location. Make sure location permissions are enabled.');
-        });
-      });
-
-      document.getElementById('shareBtn').addEventListener('click', async () => {
-        const shareUrl = window.location.href;
-        const shareData = {
-          title: '🍕 Pizza Crawl Map (2015–2026)',
-          text: 'Interactive map & rankings of all 52 Pizza Crawl pizzerias (2015–2026):',
-          url: shareUrl
-        };
-        if (navigator.share) {
-          try {
-            await navigator.share(shareData);
-            return;
-          } catch (err) {}
-        }
-        try {
-          await navigator.clipboard.writeText(shareUrl);
-          const btn = document.getElementById('shareBtn');
-          const orig = btn.innerHTML;
-          btn.innerHTML = '<span>✅</span><span>Copied!</span>';
-          setTimeout(() => { btn.innerHTML = orig; }, 2000);
-        } catch (e) {
-          prompt('Copy this link to send to your friend:', shareUrl);
-        }
-      });
-
-      fetch('https://raw.githubusercontent.com/TallPantsMan/pizza-crawl-map/main/places.json')
-        .then(r => r.json())
-        .then(data => {
-          PLACES = data;
-          render();
-        });
-    }
-
-    ensureLeafletAndBoot();
-  </script>
+<div id="app-root">
+<header class="top-header">
+<div class="header-row">
+<div class="brand-box">
+<div class="logo-badge">🍕</div>
+<div class="brand-title-wrap">
+<div class="brand-title-row">
+<h1 class="brand-title">Pizza Crawl Official Map</h1>
+<span class="verified-pill" title="Verified from Official Pizza Crawl Spreadsheet">✓ All 12 Crawls</span>
+</div>
+<p class="brand-sub">52 Pizzerias • 12 Crawls (2015–2026) • NYC, WC &amp; CT</p>
+</div>
+</div>
+<div class="actions-row">
+<a href="https://docs.google.com/spreadsheets/d/1CDbH3cUa8tEiYLFSS_YIy0HAcWvZ73u6Tzb0fiCq-sU/edit?usp=drivesdk"
+target="_blank" rel="noopener" class="btn btn-sheet" title="Open Official Google Sheet">
+<span>📊</span><span class="hide-mobile">Source Sheet</span>
+</a>
+<button id="locateBtn" class="btn btn-locate" title="Find Pizza Crawl spots near me">
+<span>📍</span><span class="hide-mobile">Near Me</span>
+</button>
+<button id="shareBtn" class="btn btn-share" title="Share map or export to Google Maps">
+<span>📲</span><span>Share</span>
+</button>
+</div>
+</div>
+<div class="controls-row">
+<select id="crawlFilter" class="filter-control" aria-label="Filter by Crawl Year">
+<option value="ALL">🗓️ All 12 Crawls (2015–26)</option>
+<option value="2026">2026 — Crawl XII: BKLYN/MHTN Throwdown</option>
+<option value="2025">2025 — Crawl XI: Brawl By The Mall (Westchester)</option>
+<option value="2024">2024 — Crawl X: The Vote for the G.O.A.T.</option>
+<option value="2023">2023 — Crawl IX: Rumble in Concrete Jungle</option>
+<option value="2022">2022 — Crawl VIII: One Cheesy Island (SI)</option>
+<option value="2021">2021 — Crawl VII: Saturday Slice Fever (BK)</option>
+<option value="2020">2020 — Crawl VI: Little Slice of Haven (CT)</option>
+<option value="2019">2019 — Crawl V: Da Brawl in Da Bronx</option>
+<option value="2018">2018 — Crawl IV: Fire and Slice (Coal Ovens)</option>
+<option value="2017">2017 — Crawl III: Cheese in Heat (MHTN)</option>
+<option value="2016">2016 — Crawl II (Brooklyn)</option>
+<option value="2015">2015 — Crawl I: Inaugural NY Pizza Crawl</option>
+</select>
+<select id="regionFilter" class="filter-control" aria-label="Filter by Region">
+<option value="ALL">🗺️ All 6 Regions (52)</option>
+<option value="Manhattan">🗽 Manhattan (18)</option>
+<option value="Brooklyn">🌉 Brooklyn (14)</option>
+<option value="Staten Island">⛴️ Staten Island (5)</option>
+<option value="Bronx">⚾ The Bronx (5)</option>
+<option value="Westchester">🌲 Westchester (5)</option>
+<option value="New Haven, CT">🎓 New Haven, CT (5)</option>
+</select>
+<div class="search-wrap">
+<span class="search-icon">🔍</span>
+<input id="searchInput" type="search" placeholder="Search pizzeria, neighborhood, coal oven, clam..." class="filter-control search-input" />
+<button id="searchClearBtn" class="search-clear" title="Clear search">✕</button>
+</div>
+</div>
+<div id="quickChipsBar" class="chips-bar">
+<button class="chip active" data-chip="ALL">🍕 All 52 Spots</button>
+<button class="chip" data-chip="WINNERS">🏆 Crawl Champions (10)</button>
+<button class="chip" data-chip="ELITE">⭐ 4.0+ Elite Club (8)</button>
+<button class="chip" data-chip="MULTI">🔁 Multi-Crawl Legends (6)</button>
+<button class="chip" data-chip="COAL">🔥 Coal / Wood Fired</button>
+<button class="chip" data-chip="REG:Manhattan">🗽 Manhattan (18)</button>
+<button class="chip" data-chip="REG:Brooklyn">🌉 Brooklyn (14)</button>
+<button class="chip" data-chip="REG:Staten Island">⛴️ Staten Island (5)</button>
+<button class="chip" data-chip="REG:Bronx">⚾ Bronx (5)</button>
+<button class="chip" data-chip="REG:Westchester">🌲 Westchester (5)</button>
+<button class="chip" data-chip="REG:New Haven, CT">🎓 New Haven (5)</button>
+</div>
+</header>
+<div class="main-area">
+<aside id="sidebarPanel" class="sidebar">
+<div class="sidebar-header">
+<span id="countLabel" style="font-weight:700;color:#e2e8f0">Showing all 52 pizzerias</span>
+<div class="legend-dots" title="Score Tiers">
+<span><i class="dot" style="background:#f59e0b"></i>4.0+</span>
+<span><i class="dot" style="background:#10b981"></i>3.6+</span>
+<span><i class="dot" style="background:#3b82f6"></i>3.2+</span>
+<span><i class="dot" style="background:#f43f5e"></i>&lt;3.2</span>
+</div>
+</div>
+<div id="crawlSummaryBanner" class="crawl-banner"></div>
+<div id="placesList" class="places-list"></div>
+</aside>
+<main class="map-wrap">
+<div class="map-floating-top">
+<div id="mapCrawlPill" class="map-crawl-pill">
+<span id="mapCrawlPillText"></span>
+<button id="mapCrawlResetBtn" class="map-crawl-reset">Show All 52 ✕</button>
+</div>
+</div>
+<div class="map-floating-tools">
+<button id="toggleLabelsBtn" class="map-tool-btn active" title="Toggle pizzeria names on map">
+<span>🏷️</span><span>Names</span>
+</button>
+<button id="fitBoundsBtn" class="map-tool-btn" title="Zoom to fit currently visible pizzerias">
+<span>🎯</span><span>Fit Map</span>
+</button>
+</div>
+<div class="mobile-bottom-bar">
+<button id="mobileToggleBtn" class="mobile-fab">
+<span id="mobileToggleIcon">🏆</span>
+<span id="mobileToggleText">Leaderboard &amp; Scores (52)</span>
+</button>
+</div>
+<div id="map"></div>
+</main>
+</div>
+</div>
+<!-- SHARE & GOOGLE MAPS EXPORT MODAL -->
+<div id="shareModal" class="modal-backdrop">
+<div class="modal-card">
+<div class="modal-header">
+<h3 class="modal-title">🍕 Share &amp; Export Pizza Map</h3>
+<button id="closeShareModalBtn" class="modal-close">✕</button>
+</div>
+<p style="font-size:12.5px;color:#94a3b8;margin:0 0 6px 0;">
+Send this interactive link to friends or open directly on your phone:
+</p>
+<div class="share-url-box">
+<input id="shareUrlInput" type="text" readonly class="share-url-input" />
+<button id="copyUrlModalBtn" class="btn btn-share">Copy Link</button>
+</div>
+<div class="modal-links-grid">
+<button id="nativeShareModalBtn" class="modal-action-card">
+<span>📲 Send via Phone / SMS</span>
+<span class="modal-action-sub">iMessage, WhatsApp, AirDrop</span>
+</button>
+<button id="downloadKmlBtn" class="modal-action-card">
+<span>📥 Download KML File</span>
+<span class="modal-action-sub">Import into Google My Maps</span>
+</button>
+<a href="https://docs.google.com/spreadsheets/d/1CDbH3cUa8tEiYLFSS_YIy0HAcWvZ73u6Tzb0fiCq-sU/edit?usp=drivesdk"
+target="_blank" rel="noopener" class="modal-action-card" style="grid-column: span 2;">
+<span>📊 View Official Pizza Crawl Google Sheet</span>
+<span class="modal-action-sub">Complete raw ratings from Crawls I – XII (2015–2026)</span>
+</a>
+</div>
+</div>
+</div>
+<script>
+let PLACES = [];
+let CRAWLS_META = {};
+function ensureLeafletAndBoot() {
+if (typeof window.L !== 'undefined') {
+initPizzaMap();
+return;
+}
+if (!document.getElementById('leaflet-js-loader')) {
+const s = document.createElement('script');
+s.id = 'leaflet-js-loader';
+s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+s.onload = initPizzaMap;
+document.head.appendChild(s);
+} else {
+setTimeout(ensureLeafletAndBoot, 50);
+}
+}
+function initPizzaMap() {
+if (window.__pizzaMapInitialized) return;
+window.__pizzaMapInitialized = true;
+if (!document.querySelector('link[href*="leaflet.css"]')) {
+const lcss = document.createElement('link');
+lcss.rel = 'stylesheet';
+lcss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+document.head.appendChild(lcss);
+}
+let mobileListOpen = false;
+let userLocationMarker = null;
+let currentFilteredCount = 52;
+let activeQuickChip = 'ALL';
+let selectedPlaceId = null;
+let forceLabelsMode = 'auto';
+let currentBounds = [];
+const markersById = {};
+const mapEl = document.getElementById('map');
+const map = L.map('map', {
+center: [40.735, -73.965],
+zoom: 12,
+zoomControl: false
+});
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+const googleStreets = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+maxZoom: 20,
+keepBuffer: 6,
+subdomains: ['mt0','mt1','mt2','mt3'],
+attribution: '&copy; Google Maps'
+}).addTo(map);
+const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+maxZoom: 20,
+keepBuffer: 6,
+subdomains: ['mt0','mt1','mt2','mt3'],
+attribution: '&copy; Google Maps Satellite'
+});
+L.control.layers({
+"Google Maps": googleStreets,
+"Satellite": googleHybrid
+}, null, { position: 'topright' }).addTo(map);
+const routeLayer = L.layerGroup().addTo(map);
+const markersLayer = L.layerGroup().addTo(map);
+function getTierColor(score) {
+if (score === null || score === undefined) return '#8b5cf6';
+if (score >= 4.0) return '#f59e0b';
+if (score >= 3.6) return '#10b981';
+if (score >= 3.2) return '#3b82f6';
+return '#f43f5e';
+}
+function getOrdinalBadge(pos) {
+if (!pos) return '';
+if (pos === 1) return '🥇 1st in Crawl';
+if (pos === 2) return '🥈 2nd in Crawl';
+if (pos === 3) return '🥉 3rd in Crawl';
+return `${pos}th in Crawl`;
+}
+function updateLabelVisibility() {
+const z = map.getZoom();
+const shouldShow = (forceLabelsMode === 'on') ||
+(forceLabelsMode === 'auto' && (z >= 13 || currentFilteredCount <= 10));
+if (shouldShow) {
+mapEl.classList.add('show-map-labels');
+} else {
+mapEl.classList.remove('show-map-labels');
+}
+}
+map.on('zoomend', updateLabelVisibility);
+function toggleMobileView(forceMap) {
+const sidebar = document.getElementById('sidebarPanel');
+const icon = document.getElementById('mobileToggleIcon');
+const text = document.getElementById('mobileToggleText');
+if (forceMap === true) {
+mobileListOpen = false;
+} else if (forceMap === false) {
+mobileListOpen = true;
+} else {
+mobileListOpen = !mobileListOpen;
+}
+if (mobileListOpen) {
+sidebar.classList.add('mobile-open');
+icon.textContent = '🗺️';
+text.textContent = 'Back to Map View';
+} else {
+sidebar.classList.remove('mobile-open');
+icon.textContent = '🏆';
+text.textContent = `Leaderboard & Scores (${currentFilteredCount})`;
+setTimeout(() => map.invalidateSize(), 60);
+}
+}
+function syncChipsUI() {
+document.querySelectorAll('#quickChipsBar .chip').forEach(btn => {
+btn.classList.toggle('active', btn.getAttribute('data-chip') === activeQuickChip);
+});
+}
+function render(skipFitBounds) {
+const crawlVal = document.getElementById('crawlFilter').value;
+const regionVal = document.getElementById('regionFilter').value;
+const query = document.getElementById('searchInput').value.trim().toLowerCase();
+document.getElementById('searchClearBtn').style.display = query ? 'inline-flex' : 'none';
+routeLayer.clearLayers();
+markersLayer.clearLayers();
+Object.keys(markersById).forEach(k => delete markersById[k]);
+const listEl = document.getElementById('placesList');
+listEl.innerHTML = '';
+const bannerEl = document.getElementById('crawlSummaryBanner');
+const pillEl = document.getElementById('mapCrawlPill');
+const pillText = document.getElementById('mapCrawlPillText');
+if (crawlVal !== 'ALL' && CRAWLS_META[crawlVal]) {
+const cm = CRAWLS_META[crawlVal];
+bannerEl.classList.add('visible');
+bannerEl.innerHTML = `
+<div class="crawl-banner-top">
+<h3 class="crawl-banner-title">🍕 ${cm.name} (${cm.year})</h3>
+${cm.avg_score ? `<span class="crawl-banner-avg">Crawl Avg: ${cm.avg_score.toFixed(3)}</span>` : '<span class="crawl-banner-avg">Inaugural</span>'}
+</div>
+<div class="crawl-banner-winner">
+${cm.winner_score ? `🏆 Champion: <strong>${cm.winner_name}</strong> (${cm.winner_score.toFixed(3)})` : `🌟 ${cm.winner_name}`}
+</div>
+<p class="crawl-banner-desc">${cm.summary}</p>
+`;
+pillEl.classList.add('visible');
+pillText.innerHTML = `🍕 <strong>${cm.short_name}</strong> ${cm.winner_score ? `• 🏆 ${cm.winner_name} (${cm.winner_score.toFixed(3)})` : ''}`;
+} else {
+bannerEl.classList.remove('visible');
+bannerEl.innerHTML = '';
+pillEl.classList.remove('visible');
+}
+const filtered = PLACES.filter(p => {
+if (regionVal !== 'ALL' && p.region !== regionVal) return false;
+if (crawlVal !== 'ALL') {
+const yr = parseInt(crawlVal, 10);
+if (!p.appearances.some(a => a.year === yr)) return false;
+}
+if (activeQuickChip === 'WINNERS' && !p.is_crawl_winner) return false;
+if (activeQuickChip === 'ELITE' && (!p.best_score || p.best_score < 4.0)) return false;
+if (activeQuickChip === 'MULTI' && p.appearances_count < 2) return false;
+if (activeQuickChip === 'COAL') {
+const st = (p.style + ' ' + p.notes).toLowerCase();
+if (!st.includes('coal') && !st.includes('wood') && !st.includes('apizza') && !st.includes('brick')) return false;
+}
+if (query) {
+const hay = (
+p.name + ' ' + p.neighborhood + ' ' + p.region + ' ' +
+p.address + ' ' + p.notes + ' ' + p.style + ' ' + p.specialty
+).toLowerCase();
+if (!hay.includes(query)) return false;
+}
+return true;
+});
+filtered.sort((a, b) => {
+if (crawlVal !== 'ALL') {
+const yr = parseInt(crawlVal, 10);
+const appA = a.appearances.find(x => x.year === yr);
+const appB = b.appearances.find(x => x.year === yr);
+const rA = appA && appA.rank ? appA.rank : 999;
+const rB = appB && appB.rank ? appB.rank : 999;
+return rA - rB;
+}
+const rA = a.best_rank ? a.best_rank : 999;
+const rB = b.best_rank ? b.best_rank : 999;
+return rA - rB;
+});
+currentFilteredCount = filtered.length;
+document.getElementById('countLabel').textContent = `Showing ${filtered.length} of 52 pizzerias`;
+if (!mobileListOpen) {
+document.getElementById('mobileToggleText').textContent = `Leaderboard & Scores (${filtered.length})`;
+}
+currentBounds = [];
+const routeCoords = [];
+filtered.forEach(p => {
+let activeApp = p.appearances[0];
+if (crawlVal !== 'ALL') {
+const yr = parseInt(crawlVal, 10);
+activeApp = p.appearances.find(x => x.year === yr) || p.appearances[0];
+}
+const color = getTierColor(activeApp.score);
+const isClosed = p.status === 'Closed';
+const isWinner = p.is_crawl_winner;
+const rankNum = activeApp.rank || 60;
+const zOffset = (100 - rankNum) * 25 + (isWinner ? 300 : 0);
+const pinLabelText = `${p.name}${activeApp.score !== null ? ` <span class="pin-label-score">${activeApp.score.toFixed(2)}</span>` : ''}`;
+const badgeContent = crawlVal !== 'ALL' && activeApp.crawl_pos
+? `#${activeApp.rank}`
+: (activeApp.rank ? activeApp.rank : '★');
+const icon = L.divIcon({
+className: '',
+html: `
+<div class="pin-wrapper">
+<div class="custom-pin ${isWinner ? 'is-winner' : ''} ${isClosed ? 'is-closed' : ''}"
+style="background:${color};width:32px;height:32px;">
+${badgeContent}
+${isWinner ? '<span class="pin-crown">🏆</span>' : ''}
+</div>
+<div class="pin-label">${pinLabelText}</div>
+</div>
+`,
+iconSize: [32, 32],
+iconAnchor: [16, 16],
+popupAnchor: [0, -16]
+});
+const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
+const appsHtml = p.appearances.map(a => {
+const posMedal = a.crawl_pos === 1 ? '🥇 1st' : (a.crawl_pos === 2 ? '🥈 2nd' : (a.crawl_pos === 3 ? '🥉 3rd' : (a.crawl_pos ? `${a.crawl_pos}th` : '')));
+return `<div class="popup-history-row">
+<span style="color:#1e293b;font-weight:600">${a.year} — ${a.crawl}</span>
+<span style="font-weight:800;color:#0f172a;white-space:nowrap">
+${a.score !== null ? `${a.score.toFixed(3)} (#${a.rank}${posMedal ? ' • ' + posMedal : ''})` : 'Inaugural'}
+</span>
+</div>`;
+}).join('');
+const winnerBanner = isWinner
+? `<span class="popup-winner-badge">🏆 Crawl Winner (${p.won_years.join(', ')})</span>`
+: '';
+const closedBanner = isClosed
+? `<span class="popup-closed-badge">⚠️ Permanently Closed</span>`
+: (p.status === 'Check Hours' ? `<span class="popup-winner-badge">🕒 Check Seasonal Hours</span>` : '');
+const popupHtml = `
+<div class="popup-card">
+<div class="popup-badges-row">
+<span class="popup-badge" style="background:${color}">
+${activeApp.rank ? 'All-Time #' + activeApp.rank : '2015 Crawl'} • ${activeApp.score !== null ? activeApp.score.toFixed(3) : 'Unscored'}
+</span>
+${winnerBanner}
+${closedBanner}
+</div>
+<h3 class="popup-title">${p.name}</h3>
+<p class="popup-sub">${p.neighborhood} • ${p.region}</p>
+<p class="popup-addr">📍 ${p.address}</p>
+<div class="popup-Tags">
+<div class="popup-tag-line">🍕 <strong>Style:</strong> ${p.style}</div>
+<div class="popup-tag-line">⭐ <strong>Known For:</strong> ${p.specialty}</div>
+</div>
+<div class="popup-history">
+<div class="popup-history-title">Official Crawl History (${p.appearances_count}x)</div>
+${appsHtml}
+</div>
+<p class="popup-notes">${p.notes}</p>
+<div class="popup-actions">
+<a href="${gmapsUrl}" target="_blank" rel="noopener" class="popup-gmaps-btn">
+🧭 Open in Google Maps ↗
+</a>
+<button class="popup-copy-btn" onclick="window.__copySpotLink('${p.id}', this)" title="Copy direct link to this pizzeria">
+🔗 Share
+</button>
+</div>
+</div>
+`;
+const latLng = [p.display_lat || p.lat, p.display_lng || p.lng];
+const marker = L.marker(latLng, { icon, zIndexOffset: zOffset }).bindPopup(popupHtml, {
+maxWidth: 310,
+autoPanPadding: [20, 20]
+});
+marker.on('click', () => {
+selectedPlaceId = p.id;
+document.querySelectorAll('.place-item').forEach(el => {
+el.classList.toggle('selected', el.getAttribute('data-id') === p.id);
+});
+});
+markersLayer.addLayer(marker);
+markersById[p.id] = { marker, place: p, latLng };
+currentBounds.push(latLng);
+routeCoords.push(latLng);
+const scorePct = activeApp.score ? Math.min(100, Math.max(20, ((activeApp.score - 2.0) / 2.3) * 100)) : 50;
+const crawlOrdinal = (crawlVal !== 'ALL' && activeApp.crawl_pos)
+? `<span class="crawl-pos-tag">${getOrdinalBadge(activeApp.crawl_pos)}</span>`
+: '';
+const miniCrawls = p.appearances.map(a =>
+`<span class="mini-crawl-pill">${a.year}: ${a.score !== null ? a.score.toFixed(2) + ' (#' + a.rank + ')' : 'Inaugural'}</span>`
+).join('');
+const item = document.createElement('div');
+item.className = 'place-item' + (selectedPlaceId === p.id ? ' selected' : '');
+item.setAttribute('data-id', p.id);
+item.innerHTML = `
+<div class="rank-col">
+<div class="rank-circle" style="background:${color}">
+${activeApp.rank ? '#' + activeApp.rank : '★'}
+</div>
+${crawlOrdinal}
+</div>
+<div class="place-info">
+<div class="place-top">
+<div class="place-name-wrap">
+<h4 class="place-name">${p.name}</h4>
+${isWinner ? `<span class="winner-crown" title="Crawl Champion (${p.won_years.join(', ')})">🏆 Winner</span>` : ''}
+${isClosed ? `<span class="closed-tag">Closed</span>` : ''}
+</div>
+<div class="score-box">
+<span class="score-pill">${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</span>
+<div class="score-bar-track">
+<div class="score-bar-fill" style="width:${scorePct}%;background:${color}"></div>
+</div>
+</div>
+</div>
+<div class="place-meta">
+<span>${p.neighborhood} (${p.region})</span>
+<span class="style-badge">${p.style}</span>
+</div>
+<p class="place-specialty">🍴 ${p.specialty}</p>
+<div class="place-crawls-row">${miniCrawls}</div>
+</div>
+`;
+item.addEventListener('click', () => {
+selectedPlaceId = p.id;
+document.querySelectorAll('.place-item').forEach(el => {
+el.classList.toggle('selected', el.getAttribute('data-id') === p.id);
+});
+if (window.innerWidth < 768) {
+toggleMobileView(true);
+}
+setTimeout(() => {
+map.setView(latLng, 16, { animate: true });
+marker.openPopup();
+}, 90);
+});
+listEl.appendChild(item);
+});
+if (crawlVal !== 'ALL' && routeCoords.length > 1) {
+L.polyline(routeCoords, {
+color: '#f59e0b',
+weight: 2.5,
+opacity: 0.65,
+dashArray: '6, 8'
+}).addTo(routeLayer);
+}
+updateLabelVisibility();
+if (!skipFitBounds && currentBounds.length > 0) {
+if (crawlVal === 'ALL' && regionVal === 'ALL' && activeQuickChip === 'ALL' && !query) {
+map.setView([40.735, -73.965], 11);
+} else {
+map.fitBounds(currentBounds, {
+paddingTopLeft: [45, 55],
+paddingBottomRight: [145, 65],
+maxZoom: 15
+});
+}
+}
+setTimeout(() => map.invalidateSize(), 80);
+}
+window.addEventListener('resize', () => {
+map.invalidateSize();
+});
+if (typeof ResizeObserver !== 'undefined') {
+const ro = new ResizeObserver(() => {
+map.invalidateSize();
+});
+ro.observe(mapEl);
+}
+window.__copySpotLink = async function(placeId, btnEl) {
+const url = new URL(window.location.href);
+url.searchParams.set('place', placeId);
+try {
+await navigator.clipboard.writeText(url.toString());
+const orig = btnEl.innerHTML;
+btnEl.innerHTML = '✅ Copied!';
+setTimeout(() => { btnEl.innerHTML = orig; }, 1800);
+} catch (e) {
+prompt('Copy direct link to this pizzeria:', url.toString());
+}
+};
+document.getElementById('mobileToggleBtn').addEventListener('click', () => toggleMobileView());
+document.getElementById('crawlFilter').addEventListener('change', () => {
+render();
+});
+document.getElementById('regionFilter').addEventListener('change', (e) => {
+const val = e.target.value;
+if (val === 'ALL' && activeQuickChip.startsWith('REG:')) {
+activeQuickChip = 'ALL';
+} else if (val !== 'ALL') {
+activeQuickChip = 'REG:' + val;
+}
+syncChipsUI();
+render();
+});
+document.getElementById('searchInput').addEventListener('input', () => render());
+document.getElementById('searchClearBtn').addEventListener('click', () => {
+document.getElementById('searchInput').value = '';
+render();
+});
+document.getElementById('mapCrawlResetBtn').addEventListener('click', () => {
+document.getElementById('crawlFilter').value = 'ALL';
+render();
+});
+document.querySelectorAll('#quickChipsBar .chip').forEach(btn => {
+btn.addEventListener('click', () => {
+const chipVal = btn.getAttribute('data-chip');
+activeQuickChip = chipVal;
+if (chipVal.startsWith('REG:')) {
+const reg = chipVal.replace('REG:', '');
+document.getElementById('regionFilter').value = reg;
+} else {
+document.getElementById('regionFilter').value = 'ALL';
+}
+syncChipsUI();
+render();
+});
+});
+document.getElementById('toggleLabelsBtn').addEventListener('click', (e) => {
+const btn = e.currentTarget;
+if (forceLabelsMode === 'auto' || forceLabelsMode === 'off') {
+forceLabelsMode = 'on';
+btn.classList.add('active');
+btn.innerHTML = '<span>🏷️</span><span>Names: On</span>';
+} else {
+forceLabelsMode = 'off';
+btn.classList.remove('active');
+btn.innerHTML = '<span>🏷️</span><span>Names: Off</span>';
+}
+updateLabelVisibility();
+});
+document.getElementById('fitBoundsBtn').addEventListener('click', () => {
+if (currentBounds.length > 0) {
+map.fitBounds(currentBounds, {
+paddingTopLeft: [45, 55],
+paddingBottomRight: [145, 65],
+maxZoom: 15
+});
+}
+});
+document.getElementById('locateBtn').addEventListener('click', () => {
+if (!navigator.geolocation) {
+alert('Geolocation is not supported by your browser.');
+return;
+}
+navigator.geolocation.getCurrentPosition(pos => {
+const { latitude, longitude } = pos.coords;
+if (userLocationMarker) map.removeLayer(userLocationMarker);
+userLocationMarker = L.circleMarker([latitude, longitude], {
+radius: 9,
+fillColor: '#3b82f6',
+color: '#ffffff',
+weight: 3,
+fillOpacity: 1
+}).addTo(map).bindPopup('<b>📍 You are here</b>').openPopup();
+map.setView([latitude, longitude], 14, { animate: true });
+}, () => {
+alert('Unable to retrieve your location. Make sure location permissions are enabled.');
+});
+});
+const shareModal = document.getElementById('shareModal');
+const shareUrlInput = document.getElementById('shareUrlInput');
+document.getElementById('shareBtn').addEventListener('click', () => {
+shareUrlInput.value = window.location.href;
+shareModal.classList.add('open');
+});
+document.getElementById('closeShareModalBtn').addEventListener('click', () => {
+shareModal.classList.remove('open');
+});
+shareModal.addEventListener('click', (e) => {
+if (e.target === shareModal) shareModal.classList.remove('open');
+});
+document.getElementById('copyUrlModalBtn').addEventListener('click', async (e) => {
+const btn = e.currentTarget;
+try {
+await navigator.clipboard.writeText(shareUrlInput.value);
+const orig = btn.textContent;
+btn.textContent = '✅ Copied!';
+setTimeout(() => { btn.textContent = orig; }, 2000);
+} catch (err) {
+shareUrlInput.select();
+document.execCommand('copy');
+}
+});
+document.getElementById('nativeShareModalBtn').addEventListener('click', async () => {
+const shareData = {
+title: '🍕 Official Pizza Crawl Map (2015–2026)',
+text: 'Interactive map & rankings of all 52 Pizza Crawl pizzerias (2015–2026):',
+url: window.location.href
+};
+if (navigator.share) {
+try { await navigator.share(shareData); } catch (err) {}
+} else {
+await navigator.clipboard.writeText(window.location.href);
+alert('Link copied to clipboard!');
+}
+});
+document.getElementById('downloadKmlBtn').addEventListener('click', () => {
+const kmlParts = [
+'<?xml version="1.0" encoding="UTF-8"?>',
+'<kml xmlns="http://www.opengis.net/kml/2.2"><Document>',
+'<name>Pizza Crawl Official Map (2015-2026)</name>'
+];
+PLACES.forEach(p => {
+const rk = p.best_rank ? `#${p.best_rank} ` : '';
+const sc = p.best_score ? ` (${p.best_score.toFixed(3)})` : ' (2015 Crawl)';
+const nm = (rk + p.name + sc).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const desc = `${p.address} | ${p.style} | ${p.notes}`.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+kmlParts.push(`<Placemark><name>${nm}</name><description>${desc}</description><Point><coordinates>${p.lng},${p.lat},0</coordinates></Point></Placemark>`);
+});
+kmlParts.push('</Document></kml>');
+const blob = new Blob([kmlParts.join('\n')], { type: 'application/vnd.google-earth.kml+xml' });
+const a = document.createElement('a');
+a.href = URL.createObjectURL(blob);
+a.download = 'Pizza_Crawl_Google_My_Maps.kml';
+a.click();
+});
+const params = new URLSearchParams(window.location.search);
+if (params.get('crawl')) {
+const c = params.get('crawl');
+if (CRAWLS_META[c]) {
+document.getElementById('crawlFilter').value = c;
+}
+}
+render();
+if (params.get('place')) {
+const pid = params.get('place');
+if (markersById[pid]) {
+setTimeout(() => {
+const { marker, latLng } = markersById[pid];
+map.setView(latLng, 16, { animate: true });
+marker.openPopup();
+}, 300);
+}
+}
+}
+fetch("https://raw.githubusercontent.com/TallPantsMan/pizza-crawl-map/main/data.json").then(r=>r.json()).then(d=>{PLACES=d.places;CRAWLS_META=d.crawls;ensureLeafletAndBoot();});
+</script>
 </body>
 </html>

@@ -348,7 +348,7 @@
     }
 
     /* LEAFLET POPUP: Dynamic Minimal Style */
-    .leaflet-popup-content-wrapper {
+        .leaflet-popup-content-wrapper {
       background: #0d1524 !important; color: #ffffff !important;
       border: 1px solid rgba(255, 255, 255, 0.15) !important;
       border-radius: 14px !important; padding: 0 !important;
@@ -356,54 +356,51 @@
       font-family: 'Poppins', sans-serif !important;
     }
     .leaflet-popup-content {
-      margin: 0 !important; width: 310px !important; max-width: 86vw !important;
+      margin: 0 !important; width: 290px !important; max-width: 86vw !important; overflow: hidden !important;
+    }
+    .leaflet-popup-scrolled {
+      overflow: hidden !important; border-top: none !important; border-bottom: none !important;
     }
     .leaflet-popup-tip { background: #0d1524 !important; }
     .leaflet-container a.leaflet-popup-close-button {
-      top: 8px !important; right: 8px !important;
-      color: #fff !important; width: 26px !important; height: 26px !important;
-      background: rgba(0,0,0,0.65) !important; border-radius: 999px !important;
+      top: 6px !important; right: 6px !important;
+      color: #fff !important; width: 24px !important; height: 24px !important;
+      background: rgba(0,0,0,0.7) !important; border-radius: 999px !important;
       display: flex !important; align-items: center !important; justify-content: center !important;
-      font-size: 16px !important; z-index: 10 !important;
+      font-size: 15px !important; z-index: 10 !important;
     }
     .popup-photos {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 3px; height: 125px; background: #000;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 3px; height: 100px; background: #000;
     }
     .popup-photos img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .popup-inner { padding: 11px 14px 13px 14px; }
-    .popup-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-    .popup-title { font-size: 16px; font-weight: 700; color: #fff; margin: 0; line-height: 1.25; }
+    .popup-inner { padding: 9px 12px 11px 12px; }
+    .popup-head { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+    .popup-title { font-size: 15px; font-weight: 700; color: #fff; margin: 0; line-height: 1.25; }
     .popup-score {
-      font-size: 13px; font-weight: 700; color: #fbbf24;
+      font-size: 12.5px; font-weight: 700; color: #fbbf24;
       background: rgba(245,158,11,0.18); border: 1px solid rgba(245,158,11,0.4);
-      padding: 2px 7px; border-radius: 6px; flex-shrink: 0;
+      padding: 1.5px 6px; border-radius: 5px; flex-shrink: 0;
     }
-    .popup-location { font-size: 12px; color: var(--text-muted); margin: 3px 0 6px 0; }
-    .popup-detail-box {
-      background: #141f33; border: 1px solid rgba(255,255,255,0.08);
-      border-radius: var(--radius-sm); padding: 7px 9px; font-size: 12px; color: #f8fafc;
-      margin-bottom: 7px; line-height: 1.35;
+    .popup-location { font-size: 11.5px; color: var(--text-muted); margin: 2px 0 5px 0; }
+    .popup-specialty-line {
+      font-size: 11.5px; color: #f1f5f9; background: #141f33;
+      padding: 5px 8px; border-radius: 6px; margin-bottom: 7px;
+      line-height: 1.35; border-left: 2.5px solid var(--amber);
     }
-    .popup-detail-box strong { color: var(--amber-light); font-weight: 600; }
-    .popup-crawls-title {
-      font-size: 11px; font-weight: 700; color: var(--amber-light);
-      text-transform: uppercase; letter-spacing: 0.04em; margin: 8px 0 4px 0;
-    }
-    .popup-crawl-item {
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 12px; padding: 3px 0; border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-    .popup-crawl-item:last-child { border-bottom: none; }
-    .popup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+    .popup-specialty-line strong { color: var(--amber-light); }
+    .popup-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .popup-btn {
-      padding: 7px 10px; border-radius: var(--radius-sm); font-size: 12px; font-weight: 600;
+      padding: 6px 9px; border-radius: 6px; font-size: 11.5px; font-weight: 600;
       text-align: center; text-decoration: none; cursor: pointer; display: flex;
       align-items: center; justify-content: center; gap: 4px; font-family: 'Poppins', sans-serif;
+      border: 1px solid transparent;
     }
     .popup-btn-gmaps { background: #2563eb; color: #fff; }
-    .popup-btn-share { background: #1c2b45; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1); }
+    .popup-btn-gmaps:hover { background: #1d4ed8; }
+    .popup-btn-share { background: #1c2b45; color: #cbd5e1; border-color: rgba(255,255,255,0.1); }
+    .popup-btn-share:hover { background: #263652; color: #fff; }
 
-    /* TOAST */
+/* TOAST */
     .toast {
       position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%) translateY(40px);
       background: #10b981; color: #000000; font-weight: 700; font-size: 13px;
@@ -713,7 +710,7 @@
           const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
 
           const popupHtml = `
-            <div>
+            <div class="popup-box">
               <div class="popup-photos">
                 <img src="${photo1}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" />
                 <img src="${photo2}" alt="${p.name}" loading="lazy" referrerpolicy="no-referrer" />
@@ -724,19 +721,13 @@
                   <span class="popup-score">⭐ ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</span>
                 </div>
                 <div class="popup-location">📍 ${p.address} (${p.neighborhood})</div>
-                <div class="popup-detail-box">
-                  <strong>🍽️ Specialty:</strong> ${p.specialty}<br/>
-                  <span style="color:#94a3b8;font-size:11px">Style: ${p.style}</span>
-                </div>
-                <div class="popup-crawls-title">Crawl Record (${p.appearances.length}x)</div>
-                <div>${crawlRows}</div>
-                ${p.notes ? `<div style="font-size:11.5px;font-style:italic;color:#cbd5e1;margin-top:6px">“${p.notes}”</div>` : ''}
+                <div class="popup-specialty-line">🍽️ <strong>Specialty:</strong> ${p.specialty}</div>
                 <div class="popup-actions">
                   <a href="${gmapsUrl}" target="_blank" rel="noopener" class="popup-btn popup-btn-gmaps">
                     🧭 Directions ↗
                   </a>
-                  <button class="popup-btn popup-btn-share" onclick="window.__copySpotLink('${p.id}', this)">
-                    🔗 Share Spot
+                  <button class="popup-btn popup-btn-share" onclick="window.__openSpotDrawer('${p.id}')">
+                    📋 Details &amp; Notes
                   </button>
                 </div>
               </div>

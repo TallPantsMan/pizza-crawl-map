@@ -651,17 +651,36 @@
       setMobileView(!isMobileListOpen);
     });
 
-    // Marker Icon Generator: Strictly styled, highly visible
+    // Marker Icon Generator: Strictly styled, displays crawl rank & overall rank when viewing a crawl
     function createMarkerIcon(p, isSelected, activeRank) {
       const color = REGION_COLORS[p.region] || '#f59e0b';
       const isWinner = (p.won_years && p.won_years.length > 0);
-      const rankText = activeRank ? ('#' + activeRank) : (p.best_rank ? ('#' + p.best_rank) : '★');
+      const isCrawlView = (activeRank !== undefined && activeRank !== null && document.getElementById('crawlFilter')?.value !== 'ALL');
+
+      let rankContent;
+      let width, height;
+
+      if (isCrawlView) {
+        width = isSelected ? 48 : 42;
+        height = isSelected ? 44 : 39;
+        rankContent = `
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15">
+            <span style="font-size:${isSelected ? '13px' : '11.5px'};font-weight:800;letter-spacing:-0.2px">#${activeRank}</span>
+            <span style="font-size:8.5px;font-weight:600;opacity:0.95;letter-spacing:-0.2px;background:rgba(0,0,0,0.35);padding:0.5px 3px;border-radius:3px;margin-top:1px">All #${p.best_rank}</span>
+          </div>
+        `;
+      } else {
+        width = isSelected ? 42 : 36;
+        height = isSelected ? 42 : 36;
+        const rankText = p.best_rank ? ('#' + p.best_rank) : '★';
+        rankContent = `<span>${rankText}</span>`;
+      }
+
       const trophy = isWinner ? '<span style="position:absolute;top:-7px;right:-7px;font-size:13px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.8));z-index:2">🏆</span>' : '';
-      const size = isSelected ? 42 : 36;
       const borderW = isSelected ? '3px solid #ffffff' : '2.5px solid #ffffff';
 
       const html = `
-        <div style="position:relative;width:${size}px;height:${size}px">
+        <div style="position:relative;width:${width}px;height:${height}px">
           <div style="
             width:100%;height:100%;border-radius:10px;
             background:${color};border:${borderW};
@@ -673,7 +692,7 @@
             transform:${isSelected ? 'scale(1.12)' : 'scale(1)'};
             transition:transform 0.15s ease;
           ">
-            ${rankText}
+            ${rankContent}
           </div>
           ${trophy}
         </div>
@@ -682,9 +701,9 @@
       return L.divIcon({
         className: 'custom-pizza-marker',
         html: html,
-        iconSize: [size, size],
-        iconAnchor: [size / 2, size / 2],
-        popupAnchor: [0, -size / 2 - 4]
+        iconSize: [width, height],
+        iconAnchor: [width / 2, height / 2],
+        popupAnchor: [0, -height / 2 - 4]
       });
     }
 
@@ -807,6 +826,12 @@
                   <h3 class="popup-title">${p.name}</h3>
                   <span class="popup-score">⭐ ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</span>
                 </div>
+                ${(crawlVal !== 'ALL') ? `
+                  <div style="display:flex;gap:6px;margin:3px 0 6px 0;font-size:11px;">
+                    <span style="background:rgba(245,158,11,0.22);color:#fbbf24;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(245,158,11,0.4)">Crawl Rank #${activeApp.rank}</span>
+                    <span style="background:rgba(59,130,246,0.22);color:#93c5fd;font-weight:700;padding:2px 7px;border-radius:4px;border:1px solid rgba(59,130,246,0.4)">Overall Rank #${p.best_rank}</span>
+                  </div>
+                ` : ''}
                 <div class="popup-location">📍 ${p.address} (${p.neighborhood})</div>
                 <div class="popup-specialty-line">🍽️ <strong>Specialty:</strong> ${p.specialty}</div>
                 <div class="popup-actions">
@@ -848,7 +873,8 @@
         item.className = 'place-item' + (isExp ? ' expanded' : '');
         item.setAttribute('data-id', p.id);
 
-        const rankPillText = activeApp.rank ? ('#' + activeApp.rank) : (p.best_rank ? ('#' + p.best_rank) : '★');
+        const isCrawlMode = (crawlVal !== 'ALL');
+        const rankPillText = isCrawlMode ? (`#${activeApp.rank} • All-Time #${p.best_rank}`) : (p.best_rank ? ('#' + p.best_rank) : '★');
         const winnerBadgeHtml = isWinner ? '<span class="winner-badge">🏆 Winner</span>' : '';
         const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' ' + p.address)}`;
 
@@ -874,6 +900,12 @@
             <div class="card-info-left">
               <h4 class="card-title">${p.name}</h4>
               <p class="card-sub">${p.neighborhood} • ${p.region}</p>
+              ${isCrawlMode ? `
+                <div style="display:flex;align-items:center;gap:6px;margin-top:4px;font-size:11px">
+                  <span style="background:rgba(245,158,11,0.2);color:#fbbf24;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid rgba(245,158,11,0.35)">Crawl Rank #${activeApp.rank}</span>
+                  <span style="background:rgba(59,130,246,0.2);color:#93c5fd;font-weight:700;padding:2px 6px;border-radius:4px;border:1px solid rgba(59,130,246,0.35)">Overall Rank #${p.best_rank}</span>
+                </div>
+              ` : ''}
             </div>
             <div class="card-info-right">
               <div class="card-score-pill">⭐ ${activeApp.score !== null ? activeApp.score.toFixed(3) : '2015'}</div>
@@ -886,6 +918,14 @@
           <!-- 1-TAP AWAY DETAILS DRAWER -->
           <div class="card-drawer">
             <div class="drawer-style-tag">${p.style}</div>
+            ${isCrawlMode ? `
+              <div class="drawer-row" style="background:rgba(15,23,42,0.45);padding:6px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);margin-bottom:8px">
+                <div style="display:flex;flex-direction:column;gap:3px;width:100%">
+                  <div style="display:flex;justify-content:space-between"><span style="color:#94a3b8">🍕 Rank in this Crawl:</span><strong style="color:#fbbf24">#${activeApp.rank}</strong></div>
+                  <div style="display:flex;justify-content:space-between"><span style="color:#94a3b8">🏆 All-Time Overall Rank:</span><strong style="color:#60a5fa">#${p.best_rank} of 52</strong></div>
+                </div>
+              </div>
+            ` : ''}
             <div class="drawer-row">
               <strong>🍽️ Specialty:</strong>
               <span>${p.specialty}</span>

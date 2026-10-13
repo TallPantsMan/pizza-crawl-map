@@ -243,8 +243,18 @@ DISPLAY_OFFSETS = {
     "frank-pepes": (-0.00012, 0.00025),
 }
 
-curated_photos_path = r"C:\Users\alexh\.gemini\antigravity\brain\28b0ecdd-8d2a-4cf7-a88b-b0943b78da1f\scratch\final_curated_photos.json"
-curated_photos = json.load(open(curated_photos_path, encoding="utf-8"))
+curr_dir_photos = os.path.dirname(os.path.abspath(__file__))
+curated_photos_path = os.path.join(curr_dir_photos, "final_curated_photos.json")
+if not os.path.exists(curated_photos_path):
+    curated_photos_path = r"C:\Users\alexh\.gemini\antigravity\brain\28b0ecdd-8d2a-4cf7-a88b-b0943b78da1f\scratch\final_curated_photos.json"
+
+if os.path.exists(curated_photos_path):
+    try:
+        curated_photos = json.load(open(curated_photos_path, encoding="utf-8"))
+    except Exception:
+        curated_photos = {}
+else:
+    curated_photos = {}
 
 curated_photos["arturos"] = [
     "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9RdrrLkpFLvfeiyHGy8_VayyMRdUVJjHVxYR_pUAPKw8lHsHR6SZ_4BjYshHG4ApImz_zo8_Z10GaDrKqoy982AHh7wDkrJgffFYjCcT3gn04ALqotdep3FCo_GfV7nIwcZ9EtSpV3ghuWM=w500-h360-k-no",

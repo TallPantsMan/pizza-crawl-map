@@ -5,6 +5,21 @@ import xml.sax.saxutils as saxutils
 # Base places
 from generate_pizza_maps import PIZZA_PLACES
 
+curr_dir = os.path.dirname(os.path.abspath(__file__))
+enriched_json_path = os.path.join(curr_dir, "places_enriched.json")
+if not os.path.exists(enriched_json_path):
+    enriched_json_path = r"C:\Users\alexh\.gemini\antigravity\brain\28b0ecdd-8d2a-4cf7-a88b-b0943b78da1f\scratch\places_enriched.json"
+
+if os.path.exists(enriched_json_path):
+    try:
+        with open(enriched_json_path, "r", encoding="utf-8") as f:
+            e_data = json.load(f)
+            if "places" in e_data and len(e_data["places"]) > 0:
+                PIZZA_PLACES = e_data["places"]
+                print(f"Loaded {len(PIZZA_PLACES)} places from {enriched_json_path}")
+    except Exception as err:
+        print("[Warning] Could not load enriched places:", err)
+
 CRAWLS_META = {
     2026: {
         "year": 2026,
@@ -270,11 +285,11 @@ for p in PIZZA_PLACES:
     p["status"] = ext.get("status", "Open")
     dlat, dlng = DISPLAY_OFFSETS.get(pid, (0.0, 0.0))
     p["display_lat"] = round(p["lat"] + dlat, 6)
-    p["display_lng"] = round(p["lng"] + dlng, 6)
-    p["photos"] = curated_photos.get(pid, [
-        "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QCwj8XAzg4-c_FOAlFxrWUtgHaPpTy1fNoIVKeLZ4opMpJG8aAl5OnQZJc2P-zzPBVAKM8HgRQm5w3azfZaETpQ90Lhz1LuXlF8GbrJItsOmUzO2_uVwNHkXQh6Kz_d2pdUhFk=w500-h360-k-no",
-        "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Sx-xcEAIHYV1Juk-D4a4lL5lCF6GQZ4qCol1qYYJSIDXYXsAqVcwxliAtr-QtmFXvRHnn_IZyPq29hX8nIOS4ZQ40ahB0WXGq8WXYu51VaKJqIawcEM_9v-sD_o7Z2o5noKGF1=w500-h360-k-no"
-    ])
+    if "photos" not in p or not p["photos"]:
+        p["photos"] = curated_photos.get(pid, [
+            "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9QCwj8XAzg4-c_FOAlFxrWUtgHaPpTy1fNoIVKeLZ4opMpJG8aAl5OnQZJc2P-zzPBVAKM8HgRQm5w3azfZaETpQ90Lhz1LuXlF8GbrJItsOmUzO2_uVwNHkXQh6Kz_d2pdUhFk=w500-h360-k-no",
+            "https://lh3.googleusercontent.com/gps-cs-s/ANWiy9Sx-xcEAIHYV1Juk-D4a4lL5lCF6GQZ4qCol1qYYJSIDXYXsAqVcwxliAtr-QtmFXvRHnn_IZyPq29hX8nIOS4ZQ40ahB0WXGq8WXYu51VaKJqIawcEM_9v-sD_o7Z2o5noKGF1=w500-h360-k-no"
+        ])
     p["appearances_count"] = len(p["appearances"])
 
 # Map crawl winners accurately from CRAWLS_META

@@ -295,11 +295,18 @@
       "region": "Brooklyn",
       "lat": 40.7081,
       "lng": -73.9503,
-      "best_rank": 49,
-      "best_score": null,
-      "appearances": [],
+      "best_rank": 8,
+      "best_score": 4.0,
+      "appearances": [
+        {
+          "year": 2016,
+          "crawl": "Crawl II",
+          "score": 4.0,
+          "rank": 1
+        }
+      ],
       "notes": "Winner of Crawl II (2016) with a 4.000 score.",
-      "appearances_count": 0,
+      "appearances_count": 1,
       "won_years": [
         2016
       ],
@@ -1396,31 +1403,27 @@
       "id": "williamsburg-mhtn",
       "name": "Williamsburg Pizza (Lower East Side)",
       "sheet_names": [
-        "Williamsburg"
+        "Williamsburg (LES)",
+        "Williamsburg Pizza (LES)",
+        "Williamsburg Pizza (Lower East Side)"
       ],
       "address": "277 Broome St, New York, NY 10002",
       "neighborhood": "Lower East Side",
       "region": "Manhattan",
       "lat": 40.7181,
       "lng": -73.9912,
-      "best_rank": 8,
-      "best_score": 4.0,
+      "best_rank": 40,
+      "best_score": 2.99,
       "appearances": [
         {
           "year": 2017,
           "crawl": "Crawl III: \"Cheese in Heat\"",
           "score": 2.99,
           "rank": 4
-        },
-        {
-          "year": 2016,
-          "crawl": "Crawl II",
-          "score": 4.0,
-          "rank": 1
         }
       ],
       "notes": "Manhattan outpost featured in Crawl III: Cheese in Heat (2017).",
-      "appearances_count": 2,
+      "appearances_count": 1,
       "won_years": [],
       "is_crawl_winner": false,
       "style": "Lower East Side Slice",
@@ -1443,7 +1446,7 @@
       "region": "New Haven, CT",
       "lat": 41.3061,
       "lng": -72.9309,
-      "best_rank": 40,
+      "best_rank": 41,
       "best_score": 2.97,
       "appearances": [
         {
@@ -1477,7 +1480,7 @@
       "region": "New Haven, CT",
       "lat": 41.3029,
       "lng": -72.9169,
-      "best_rank": 41,
+      "best_rank": 42,
       "best_score": 2.95,
       "appearances": [
         {
@@ -1511,7 +1514,7 @@
       "region": "New Haven, CT",
       "lat": 41.3125,
       "lng": -72.9122,
-      "best_rank": 42,
+      "best_rank": 43,
       "best_score": 2.91,
       "appearances": [
         {
@@ -1545,7 +1548,7 @@
       "region": "Staten Island",
       "lat": 40.5888,
       "lng": -74.0919,
-      "best_rank": 43,
+      "best_rank": 44,
       "best_score": 2.89,
       "appearances": [
         {
@@ -1579,7 +1582,7 @@
       "region": "Manhattan",
       "lat": 40.7237,
       "lng": -73.9881,
-      "best_rank": 44,
+      "best_rank": 45,
       "best_score": 2.78,
       "appearances": [
         {
@@ -1613,7 +1616,7 @@
       "region": "Manhattan",
       "lat": 40.7982,
       "lng": -73.9689,
-      "best_rank": 45,
+      "best_rank": 46,
       "best_score": 2.67,
       "appearances": [
         {
@@ -1647,7 +1650,7 @@
       "region": "Bronx",
       "lat": 40.8715,
       "lng": -73.8654,
-      "best_rank": 46,
+      "best_rank": 47,
       "best_score": 2.63,
       "appearances": [
         {
@@ -1681,7 +1684,7 @@
       "region": "Brooklyn",
       "lat": 40.7027,
       "lng": -73.9934,
-      "best_rank": 47,
+      "best_rank": 48,
       "best_score": 2.62,
       "appearances": [
         {
@@ -1715,7 +1718,7 @@
       "region": "Bronx",
       "lat": 40.8468,
       "lng": -73.8981,
-      "best_rank": 48,
+      "best_rank": 49,
       "best_score": 2.18,
       "appearances": [
         {

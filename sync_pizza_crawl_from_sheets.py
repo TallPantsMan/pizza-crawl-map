@@ -216,23 +216,32 @@ def run_sync(push_to_github=True):
         # Match place
         key = contestant.lower()
         clean_key = key.replace("'", "").replace('"', '').strip()
-        p = lookup.get(key)
+        p = None
+
+        # 1. Disambiguation for contestants with identical names across crawls
+        if 'williamsburg' in clean_key:
+            if yr == 2016:
+                p = next((x for x in places if x['id'] == 'williamsburg-bk'), None)
+            elif yr == 2017:
+                p = next((x for x in places if x['id'] == 'williamsburg-mhtn'), None)
+        elif 'difara' in clean_key:
+            p = next((x for x in places if x['id'] in ['difaras', 'difara']), None)
+        elif 'arturo' in clean_key:
+            p = next((x for x in places if x['id'] == 'arturos'), None)
+        elif 'john' in clean_key and 'bleecker' in clean_key:
+            p = next((x for x in places if x['id'] == 'johns-bleecker'), None)
+
+        # 2. General dictionary lookup
+        if not p:
+            p = lookup.get(key)
         if not p:
             for k, val in lookup.items():
                 if clean_key == k.replace("'", "").replace('"', '').strip():
                     p = val
                     break
         if not p:
-            if 'williamsburg' in key and yr == 2016:
-                p = next((x for x in places if x['id'] == 'williamsburg-bk'), None)
-            elif 'williamsburg' in key and yr == 2017:
-                p = next((x for x in places if x['id'] == 'williamsburg-les'), None)
-            elif 'difara' in key:
-                p = next((x for x in places if x['id'] == 'difara'), None)
-            elif 'john' in key:
+            if 'john' in clean_key:
                 p = next((x for x in places if x['id'] == 'johns-bleecker'), None)
-            elif 'arturo' in key:
-                p = next((x for x in places if x['id'] == 'arturos'), None)
 
         if not p:
             # Auto-provision new contestant!
@@ -290,15 +299,21 @@ def run_sync(push_to_github=True):
     # 3. Determine crawl winners and calculate intra-crawl rank
     crawl_winners_map = {}
     for yr, c_entries in crawls_by_year.items():
-        scored = [x for x in c_entries if x["score"] is not None]
-        unscored = [x for x in c_entries if x["score"] is None]
-        scored.sort(key=lambda x: -x["score"])
-        
-        if scored:
-            top_contestant = scored[0]["contestant"]
-            top_p = lookup.get(top_contestant.lower())
-            if top_p:
-                crawl_winners_map.setdefault(top_p["id"], []).append(yr)
+        year_places = []
+        for p in places:
+            app = next((a for a in place_appearances.get(p["id"], []) if a["year"] == yr), None)
+            if app and app.get("score") is not None:
+                year_places.append((p, app["score"]))
+        if year_places:
+            year_places.sort(key=lambda x: -x[1])
+            winner_place = year_places[0][0]
+            crawl_winners_map.setdefault(winner_place["id"], []).append(yr)
+
+    # Incorporate official winners from metadata (such as unscored Crawl I)
+    for yr, meta in crawls_meta.items():
+        wid = meta.get("winner_id")
+        if wid and yr not in crawl_winners_map.get(wid, []):
+            crawl_winners_map.setdefault(wid, []).append(yr)
 
     # 4. Update each place's appearances, best_score, and won_years
     for p in places:

@@ -640,7 +640,7 @@ PIZZA_PLACES = [
     {
         "id": "williamsburg-mhtn",
         "name": "Williamsburg Pizza (Lower East Side)",
-        "sheet_names": ["Williamsburg"],
+        "sheet_names": ["Williamsburg (LES)", "Williamsburg Pizza (LES)", "Williamsburg Pizza (Lower East Side)"],
         "address": "277 Broome St, New York, NY 10002",
         "neighborhood": "Lower East Side",
         "region": "Manhattan",
